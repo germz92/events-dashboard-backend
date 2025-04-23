@@ -55,17 +55,16 @@ app.get('/api/tables', authenticate, async (req, res) => {
 
 app.get('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
-  if (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id)) {
-    return res.status(403).json({ error: 'Not authorized' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json(table);
 });
 
 app.post('/api/tables/:id/rows', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id)) {
-    return res.status(403).json({ error: 'Not authorized' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.rows.push(req.body);
   await table.save();
@@ -75,35 +74,49 @@ app.post('/api/tables/:id/rows', authenticate, async (req, res) => {
 app.post('/api/tables/:id/share', authenticate, async (req, res) => {
   const userToShare = await User.findOne({ email: req.body.email });
   if (!userToShare) return res.status(404).json({ error: 'User not found' });
+
   const table = await Table.findById(req.params.id);
-  if (!table.owner.equals(req.user.id)) return res.status(403).json({ error: 'Not authorized' });
+  if (!table || !table.owner.equals(req.user.id)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+
   if (!table.sharedWith.includes(userToShare._id)) {
     table.sharedWith.push(userToShare._id);
     await table.save();
   }
+
   res.json({ message: 'Shared' });
 });
 
 app.get('/api/users', authenticate, async (req, res) => {
-  const users = await User.find({}, 'username email'); // only send username + email
+  const users = await User.find({}, 'username email');
   res.json(users);
 });
 
 app.get('/api/tables/:id/general', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
 
   res.json(table.general || {});
 });
 
+app.put('/api/tables/:id/general', authenticate, async (req, res) => {
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
+
+  table.general = req.body;
+  await table.save();
+  res.json({ message: 'General info updated' });
+});
 
 app.put('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
-
-  // Optional: validate user ownership here
-  if (!table.owner.equals(req.user.id)) {
-    return res.status(403).json({ error: 'Not authorized' });
+  if (!table || !table.owner.equals(req.user.id)) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
   table.rows = req.body.rows;
@@ -111,28 +124,31 @@ app.put('/api/tables/:id', authenticate, async (req, res) => {
   res.json({ message: 'Table updated' });
 });
 
-// GET gear
 app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
+
   res.json(table.gear || {});
 });
 
-// PUT gear
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
 
   table.gear = req.body;
   await table.save();
-
   res.json({ message: 'Gear saved' });
 });
 
-// GET travel
 app.get('/api/tables/:id/travel', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
 
   res.json({
     travel: table.travel || [],
@@ -140,24 +156,23 @@ app.get('/api/tables/:id/travel', authenticate, async (req, res) => {
   });
 });
 
-// PUT travel
 app.put('/api/tables/:id/travel', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
 
   table.travel = req.body.travel || [];
   table.accommodation = req.body.accommodation || [];
-
   await table.save();
   res.json({ message: 'Travel and accommodation saved' });
 });
 
-
-
 app.delete('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
-  if (!table.owner.equals(req.user.id)) return res.status(403).json({ error: 'Not authorized' });
+  if (!table || !table.owner.equals(req.user.id)) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
 
   await table.deleteOne();
   res.json({ message: 'Table deleted' });
@@ -165,10 +180,8 @@ app.delete('/api/tables/:id', authenticate, async (req, res) => {
 
 app.delete('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
-
-  if (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id)) {
-    return res.status(403).json({ error: 'Not authorized' });
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
   const idx = parseInt(req.params.index);
@@ -181,16 +194,6 @@ app.delete('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   res.json({ message: 'Row deleted' });
 });
 
-app.put('/api/tables/:id/general', authenticate, async (req, res) => {
-  const table = await Table.findById(req.params.id);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
-
-  table.general = req.body;
-  await table.save();
-
-  res.json({ message: 'General info updated' });
-});
-
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -200,8 +203,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  res.json({ token, username: user.username }); // ✅ send username
+  res.json({ token, username: user.username });
 });
-
 
 app.listen(3000, () => console.log('Server started on port 3000'));
