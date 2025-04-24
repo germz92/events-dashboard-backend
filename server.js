@@ -36,13 +36,18 @@ app.post('/api/tables', authenticate, async (req, res) => {
   const table = new Table({
     title: req.body.title,
     owner: req.user.id,
-    general: req.body.general || {}, // ✅ Add this line
+    sharedWith: [],
     rows: [],
-    sharedWith: []
+    general: {
+      client: req.body.client || '',
+      start: req.body.start || '',
+      end: req.body.end || ''
+    }
   });
   await table.save();
   res.json(table);
 });
+
 
 
 app.get('/api/tables', authenticate, async (req, res) => {
