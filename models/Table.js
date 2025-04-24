@@ -20,6 +20,7 @@ const tableSchema = new mongoose.Schema({
     weather: String,
     start: String,
     end: String,
+    client: String, // ✅ Added client field
     attendees: Number,
     budget: String,
     contacts: [
@@ -32,7 +33,7 @@ const tableSchema = new mongoose.Schema({
     ]
   },
   gear: {
-    type: mongoose.Schema.Types.Mixed, // ✅ accepts an object of arrays
+    type: mongoose.Schema.Types.Mixed, // accepts object of arrays
     default: {}
   },
   travel: [
