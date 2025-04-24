@@ -32,13 +32,7 @@ const tableSchema = new mongoose.Schema({
     ]
   },
   gear: {
-    type: Map,
-    of: [
-      {
-        label: String,
-        checked: Boolean
-      }
-    ],
+    type: mongoose.Schema.Types.Mixed, // ✅ accepts an object of arrays
     default: {}
   },
   travel: [
@@ -58,9 +52,7 @@ const tableSchema = new mongoose.Schema({
       name: String,
       ref: String
     }
-  ],
-  
-  
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Table', tableSchema);
