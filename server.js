@@ -33,22 +33,23 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/tables', authenticate, async (req, res) => {
+  const { title, general } = req.body;
+
   const table = new Table({
-    title: req.body.title,
+    title,
     owner: req.user.id,
-    sharedWith: [],
     rows: [],
+    sharedWith: [],
     general: {
-      client: req.body.client || '',
-      start: req.body.start || '',
-      end: req.body.end || ''
+      client: general?.client || '',
+      start: general?.start || '',
+      end: general?.end || ''
     }
   });
+
   await table.save();
   res.json(table);
 });
-
-
 
 app.get('/api/tables', authenticate, async (req, res) => {
   const tables = await Table.find({
