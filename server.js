@@ -11,6 +11,8 @@ app.use(express.json());
 
 const User = require('./models/User');
 const Table = require('./models/Table');
+const CardLog = require('./models/CardLog');
+
 
 mongoose.connect(process.env.MONGO_URI);
 
@@ -213,5 +215,34 @@ app.post('/api/auth/login', async (req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
   res.json({ token, username: user.username });
 });
+
+app.post('/api/cardlog/save', authenticate, async (req, res) => {
+  try {
+    const { logs } = req.body;
+    const userId = req.user.id;
+
+    const newCardLog = new CardLog({
+      owner: userId,
+      logs
+    });
+
+    await newCardLog.save();
+    res.json({ message: 'Card log saved successfully!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save card log' });
+  }
+});
+
+app.get('/api/cardlog/list', authenticate, async (req, res) => {
+  try {
+    const cardLogs = await CardLog.find({ owner: req.user.id }).sort({ createdAt: -1 });
+    res.json(cardLogs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch card logs' });
+  }
+});
+
 
 app.listen(3000, () => console.log('Server started on port 3000'));
