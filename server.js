@@ -222,5 +222,16 @@ app.delete('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   res.json({ message: 'Row deleted' });
 });
 
+// USERS
+app.get('/api/users', authenticate, async (req, res) => {
+  try {
+    const users = await User.find({}, 'username email').sort({ username: 1 }); // 🔥 Sort alphabetically (ascending)
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
