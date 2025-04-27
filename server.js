@@ -228,7 +228,7 @@ app.delete('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
 // USERS
 app.get('/api/users', authenticate, async (req, res) => {
   try {
-    const users = await User.find({}, 'username email').sort({ username: 1 }); // 🔥 Sort alphabetically (ascending)
+    const users = await User.find({}, 'fullName email').sort({ fullName: 1 }); // 🔥 Corrected
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
