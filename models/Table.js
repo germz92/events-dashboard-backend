@@ -53,6 +53,19 @@ const tableSchema = new mongoose.Schema({
       name: String,
       ref: String
     }
+  ],
+  cardLog: [
+    {
+      date: String,
+      entries: [
+        {
+          camera: String,
+          card1: String,
+          card2: String,
+          user: String
+        }
+      ]
+    }
   ]
 }, { timestamps: true });
 
