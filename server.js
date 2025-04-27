@@ -26,12 +26,15 @@ function authenticate(req, res, next) {
 
 // AUTH
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password, username } = req.body;
+  const { email, password, fullName } = req.body; // 🔥 updated
+
   const hashed = await bcrypt.hash(password, 10);
-  const user = new User({ email, password: hashed, username });
+  const user = new User({ email, password: hashed, fullName }); // 🔥 updated
+
   await user.save();
   res.json({ message: 'User created' });
 });
+
 
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
