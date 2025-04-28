@@ -45,7 +45,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  res.json({ token, username: user.username });
+  res.json({ token, fullName: user.fullName });
 });
 
 // TABLE ROUTES
