@@ -239,5 +239,24 @@ app.get('/api/users', authenticate, async (req, res) => {
   }
 });
 
+// PROGRAM SCHEDULE
+app.get('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
+  res.json({ programSchedule: table.programSchedule || [] });
+});
+
+app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
+  table.programSchedule = req.body.programSchedule || [];
+  await table.save();
+  res.json({ message: 'Program schedule updated' });
+});
+
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
