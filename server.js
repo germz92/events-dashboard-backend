@@ -171,10 +171,13 @@ app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
   if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
-  table.gear = req.body;
+  
+  table.gear = req.body.gear;
+  
   await table.save();
   res.json({ message: 'Gear saved' });
 });
+
 
 // TRAVEL / ACCOMMODATION
 app.get('/api/tables/:id/travel', authenticate, async (req, res) => {
