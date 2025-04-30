@@ -61,12 +61,24 @@ app.post('/api/tables', authenticate, async (req, res) => {
       client: general?.client || '',
       start: general?.start || '',
       end: general?.end || ''
+    },
+    gear: {
+      lists: {
+        Default: {
+          Cameras: [],
+          Lenses: [],
+          Lighting: [],
+          Support: [],
+          Accessories: []
+        }
+      }
     }
   });
 
   await table.save();
   res.json(table);
 });
+
 
 app.get('/api/tables', authenticate, async (req, res) => {
   const tables = await Table.find({
