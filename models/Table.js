@@ -6,7 +6,7 @@ const tableSchema = new mongoose.Schema({
   sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   rows: [
     {
-      date: Date,
+      date: String, // ✅ FIXED: changed from Date to String
       role: String,
       name: String,
       startTime: String,
@@ -20,7 +20,7 @@ const tableSchema = new mongoose.Schema({
     weather: String,
     start: String,
     end: String,
-    client: String, // ✅ Added client field
+    client: String,
     attendees: Number,
     budget: String,
     contacts: [
