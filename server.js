@@ -183,20 +183,33 @@ app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
 
 // ✅ PUT (save) gear checklist(s)
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
-  const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-    return res.status(403).json({ error: 'Not authorized or not found' });
-  }
+  try {
+    const table = await Table.findById(req.params.id);
+    if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+      return res.status(403).json({ error: 'Not authorized or not found' });
+    }
 
-  const { lists } = req.body;
-  if (!lists || typeof lists !== 'object') {
-    return res.status(400).json({ error: 'Invalid format for gear lists' });
-  }
+    const { lists } = req.body;
 
-  table.gear.lists = lists;
-  await table.save();
-  res.json({ message: 'Gear checklists saved' });
+    if (!lists || typeof lists !== 'object') {
+      return res.status(400).json({ error: 'Invalid format for gear lists' });
+    }
+
+    // ✅ Ensure gear object exists
+    if (!table.gear) {
+      table.gear = { lists: {} };
+    }
+
+    table.gear.lists = lists;
+    await table.save();
+
+    res.json({ message: 'Gear checklists saved' });
+  } catch (err) {
+    console.error('Gear save error:', err);
+    res.status(500).json({ error: 'Server error while saving gear' });
+  }
 });
+
 
 
 // TRAVEL / ACCOMMODATION
