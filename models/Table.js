@@ -1,12 +1,25 @@
 const mongoose = require('mongoose');
 
+const itemSchema = new mongoose.Schema({
+  label: String,
+  checked: Boolean
+}, { _id: false });
+
+const gearCategorySchema = new mongoose.Schema({
+  Cameras: [itemSchema],
+  Lenses: [itemSchema],
+  Lighting: [itemSchema],
+  Support: [itemSchema],
+  Accessories: [itemSchema]
+}, { _id: false });
+
 const tableSchema = new mongoose.Schema({
   title: String,
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   rows: [
     {
-      date: String, // ✅ FIXED: changed from Date to String
+      date: String,
       role: String,
       name: String,
       startTime: String,
@@ -33,8 +46,11 @@ const tableSchema = new mongoose.Schema({
     ]
   },
   gear: {
-    type: mongoose.Schema.Types.Mixed, // accepts object of arrays
-    default: {}
+    lists: {
+      type: Map,
+      of: gearCategorySchema,
+      default: {}
+    }
   },
   travel: [
     {
@@ -70,7 +86,7 @@ const tableSchema = new mongoose.Schema({
   programSchedule: {
     type: Array,
     default: []
-  },
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Table', tableSchema);
