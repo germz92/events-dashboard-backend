@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Program Schedule</title>
+  <link rel="stylesheet" href="css/schedule.css">
+  <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
+</head>
+<body>
+
+  <!-- Fixed top section -->
+  <div class="top-controls-fixed">
+    <button onclick="goBack()" class="back-btn">⬅ Back</button>
+
+    <h2 id="eventTitle">Program Schedule</h2>
+
+    <!-- Date input + Add Date button -->
+    <div class="top-controls">
+      <input id="newDate" type="date" placeholder="Select Date">
+      <button class="add-btn" onclick="addDateSection()">+ Add Date</button>
+    </div>
+
+    <!-- Injected search bar and date filter will go here -->
+    <div id="searchFilterContainer" class="top-controls"></div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div id="programSections" class="program-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/schedule.js"></script>
+</body>
+</html>

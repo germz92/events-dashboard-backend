@@ -1,0 +1,18 @@
+input[type="email"],
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 16px;
+  background: white;
+}
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}

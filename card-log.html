@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Card Log</title>
+  <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/card-log.css">
+  <script src="js/config.js"></script>
+</head>
+
+<body>
+
+    <!-- ✅ Back to Event button -->
+  <button class="back-btn" id="backButton">⬅ Back</button>
+
+  <h2>SD Card Log</h2>
+
+  <button id="add-day-btn">Add New Day</button>
+
+  <div id="table-container"></div>
+
+  <!-- Modal -->
+  <div id="date-modal" class="modal">
+    <div class="modal-content">
+      <h3>Select a Date</h3>
+      <input type="date" id="new-date-input" />
+      <div class="modal-buttons">
+        <button id="submit-date">Create Table</button>
+        <button id="cancel-modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/card-log.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const tableId = params.get('id');
+
+    if (tableId) {
+      localStorage.setItem('eventId', tableId);
+      document.getElementById('backButton').addEventListener('click', () => {
+        window.location.href = `event.html?id=${tableId}`;
+      });
+    } else {
+      alert('Event ID missing.');
+    }
+
+    // ✅ Now call loadCardLog() safely inside DOMContentLoaded
+    loadCardLog();
+  });
+</script>
+
+</body>
+</html>
