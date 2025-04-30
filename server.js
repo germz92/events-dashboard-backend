@@ -157,26 +157,45 @@ app.put('/api/tables/:id/general', authenticate, async (req, res) => {
   res.json({ message: 'General info updated' });
 });
 
-// GEAR
 app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
-  const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-    return res.status(403).json({ error: 'Not authorized or not found' });
+  try {
+    const table = await Table.findById(req.params.id);
+    if (!table) return res.status(404).json({ error: 'Table not found' });
+
+    // Default fallback: either table.gear.lists or legacy format
+    if (table.gear && table.gear.lists) {
+      res.json({ lists: table.gear.lists });
+    } else {
+      res.json({ gear: table.gear || {} }); // legacy fallback
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
-  res.json(table.gear || {});
 });
 
+
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
-  const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-    return res.status(403).json({ error: 'Not authorized or not found' });
+  try {
+    const table = await Table.findById(req.params.id);
+    if (!table) return res.status(404).json({ error: 'Table not found' });
+
+    // Make sure lists object is passed
+    if (req.body.lists) {
+      table.gear = { ...table.gear, lists: req.body.lists };
+    } else if (req.body.gear) {
+      // support legacy gear update
+      table.gear = req.body.gear;
+    }
+
+    await table.save();
+    res.json({ message: 'Gear data saved successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
-  
-  table.gear = req.body.gear;
-  
-  await table.save();
-  res.json({ message: 'Gear saved' });
 });
+
 
 
 // TRAVEL / ACCOMMODATION
