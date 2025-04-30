@@ -158,50 +158,33 @@ app.put('/api/tables/:id/general', authenticate, async (req, res) => {
 });
 
 //GEAR
+// ✅ GET gear checklist(s)
 app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
-  try {
-    const table = await Table.findById(req.params.id);
-    if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-      return res.status(403).json({ error: 'Not authorized or not found' });
-    }
-
-    // Return always under `gear.lists` shape for consistency
-    if (table.gear?.lists) {
-      res.json({ lists: Object.fromEntries(table.gear.lists) });
-    } else {
-      // Legacy fallback: treat raw gear as a single list
-      res.json({ lists: { Default: table.gear || {} } });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error loading gear' });
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
   }
+
+  const lists = table.gear?.lists ? Object.fromEntries(table.gear.lists) : {};
+  res.json({ lists });
 });
 
+// ✅ PUT (save) gear checklist(s)
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
-  try {
-    const table = await Table.findById(req.params.id);
-    if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-      return res.status(403).json({ error: 'Not authorized or not found' });
-    }
-
-    const { lists } = req.body;
-
-    if (!lists || typeof lists !== 'object') {
-      return res.status(400).json({ error: 'Invalid gear lists format' });
-    }
-
-    // Ensure structure aligns with Map-of-schema definition
-    table.gear.lists = lists;
-    await table.save();
-
-    res.json({ message: 'Gear data saved successfully' });
-  } catch (err) {
-    console.error('Gear save error:', err);
-    res.status(500).json({ error: 'Server error saving gear' });
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
   }
-});
 
+  const { lists } = req.body;
+  if (!lists || typeof lists !== 'object') {
+    return res.status(400).json({ error: 'Invalid format for gear lists' });
+  }
+
+  table.gear.lists = lists;
+  await table.save();
+  res.json({ message: 'Gear checklists saved' });
+});
 
 
 // TRAVEL / ACCOMMODATION
