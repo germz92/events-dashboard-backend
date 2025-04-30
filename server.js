@@ -157,42 +157,48 @@ app.put('/api/tables/:id/general', authenticate, async (req, res) => {
   res.json({ message: 'General info updated' });
 });
 
+//GEAR
 app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
   try {
     const table = await Table.findById(req.params.id);
-    if (!table) return res.status(404).json({ error: 'Table not found' });
+    if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+      return res.status(403).json({ error: 'Not authorized or not found' });
+    }
 
-    // Default fallback: either table.gear.lists or legacy format
-    if (table.gear && table.gear.lists) {
-      res.json({ lists: table.gear.lists });
+    // Return always under `gear.lists` shape for consistency
+    if (table.gear?.lists) {
+      res.json({ lists: Object.fromEntries(table.gear.lists) });
     } else {
-      res.json({ gear: table.gear || {} }); // legacy fallback
+      // Legacy fallback: treat raw gear as a single list
+      res.json({ lists: { Default: table.gear || {} } });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error loading gear' });
   }
 });
-
 
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
   try {
     const table = await Table.findById(req.params.id);
-    if (!table) return res.status(404).json({ error: 'Table not found' });
-
-    // Make sure lists object is passed
-    if (req.body.lists) {
-      table.gear = { ...table.gear, lists: req.body.lists };
-    } else if (req.body.gear) {
-      // support legacy gear update
-      table.gear = req.body.gear;
+    if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+      return res.status(403).json({ error: 'Not authorized or not found' });
     }
 
+    const { lists } = req.body;
+
+    if (!lists || typeof lists !== 'object') {
+      return res.status(400).json({ error: 'Invalid gear lists format' });
+    }
+
+    // Ensure structure aligns with Map-of-schema definition
+    table.gear.lists = lists;
     await table.save();
+
     res.json({ message: 'Gear data saved successfully' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Gear save error:', err);
+    res.status(500).json({ error: 'Server error saving gear' });
   }
 });
 
