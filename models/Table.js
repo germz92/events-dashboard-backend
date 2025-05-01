@@ -82,13 +82,14 @@ const tableSchema = new mongoose.Schema({
   ],
   accommodation: [
     {
-      date: String,
-      time: String,
+      checkin: String,
+      checkout: String,
       hotel: String,
       name: String,
       ref: String
     }
   ],
+  
   cardLog: [
     {
       date: String,
