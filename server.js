@@ -326,7 +326,7 @@ app.get('*', (req, res) => {
 });
 
 // MAKE OWNER
-router.post('/api/tables/:id/share', authMiddleware, async (req, res) => {
+app.post('/api/tables/:id/share', authenticate, async (req, res) => {
   const { email, makeOwner } = req.body;
   const tableId = req.params.id;
 
