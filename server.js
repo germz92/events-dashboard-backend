@@ -93,13 +93,7 @@ app.get('/api/tables', authenticate, async (req, res) => {
 
 app.get('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json(table);
@@ -107,13 +101,7 @@ if (!table || (!isOwner && !isShared)) {
 
 app.post('/api/tables/:id/rows', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.rows.push(req.body);
@@ -135,13 +123,7 @@ app.put('/api/tables/:id', authenticate, async (req, res) => {
 app.put('/api/tables/:id/cardlog', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
   
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -154,13 +136,7 @@ if (!table || (!isOwner && !isShared)) {
 // GENERAL INFO
 app.get('/api/tables/:id/general', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json(table.general || {});
@@ -168,13 +144,7 @@ if (!table || (!isOwner && !isShared)) {
 
 app.put('/api/tables/:id/general', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -192,13 +162,7 @@ if (!table || (!isOwner && !isShared)) {
 // ✅ GET gear checklist(s)
 app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -210,13 +174,7 @@ if (!table || (!isOwner && !isShared)) {
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
   try {
     const table = await Table.findById(req.params.id);
-    const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+    if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
       return res.status(403).json({ error: 'Not authorized or not found' });
     }
 
@@ -246,13 +204,7 @@ if (!table || (!isOwner && !isShared)) {
 // TRAVEL / ACCOMMODATION
 app.get('/api/tables/:id/travel', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json({
@@ -263,13 +215,7 @@ if (!table || (!isOwner && !isShared)) {
 
 app.put('/api/tables/:id/travel', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.travel = req.body.travel || [];
@@ -290,13 +236,7 @@ app.delete('/api/tables/:id', authenticate, async (req, res) => {
 
 app.delete('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -324,13 +264,7 @@ app.get('/api/users', authenticate, async (req, res) => {
 // PROGRAM SCHEDULE
 app.get('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json({ programSchedule: table.programSchedule || [] });
@@ -338,13 +272,7 @@ if (!table || (!isOwner && !isShared)) {
 
 app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.programSchedule = req.body.programSchedule || [];
@@ -354,13 +282,7 @@ if (!table || (!isOwner && !isShared)) {
 
 app.put('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -425,13 +347,7 @@ app.post('/api/tables/:id/share', authenticate, async (req, res) => {
 
 app.delete('/api/tables/:id/rows-by-id/:rowId', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -462,23 +378,13 @@ app.put('/api/tables/:id/reorder-rows', authenticate, async (req, res) => {
 
 app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  const userId = req.user.id.toString();
-const isOwner = table.owners.some(owner => owner.toString() === userId);
-const isShared = table.sharedWith.some(user => user.toString() === userId);
-
-if (!table || (!isOwner && !isShared)) {
-  return res.status(403).json({ error: 'Not authorized or not found' });
-} {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
   const rowIndex = table.rows.findIndex(r => r._id?.toString() === req.params.rowId);
   if (rowIndex === -1) return res.status(404).json({ error: 'Row not found' });
 
-  console.log('PUT /api/tables/:id/rows/:rowId', {
-    rowId: req.params.rowId,
-    body: req.body
-  });
   
   // ✅ Safely update fields in place
   Object.assign(table.rows[rowIndex], req.body);
