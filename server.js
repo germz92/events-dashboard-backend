@@ -385,15 +385,13 @@ app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
   const rowIndex = table.rows.findIndex(r => r._id?.toString() === req.params.rowId);
   if (rowIndex === -1) return res.status(404).json({ error: 'Row not found' });
 
-  // ✅ Merge updated fields with existing row
-  table.rows[rowIndex] = {
-    ...table.rows[rowIndex]._doc, // retain untouched fields like _id, date
-    ...req.body                   // overwrite with new values
-  };
+  // ✅ Safely update fields in place
+  Object.assign(table.rows[rowIndex], req.body);
 
   await table.save();
   res.json({ message: 'Row updated' });
 });
+
 
 
 // SERVER
