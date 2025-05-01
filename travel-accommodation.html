@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel and Accommodation</title>
+  <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/travel-accommodation.css">
+  <script src="js/config.js"></script>
+</head>
+<body>
+  <button onclick="goBack()" style="margin: 20px; background: #ccc; padding: 10px 16px; border-radius: 6px; border: none;">⬅ Back</button>
+  <h1 id="eventTitle" style="text-align: center;"></h1>
+
+  <div class="section">
+    <h2>Travel</h2>
+    <div class="table-wrapper">
+      <table id="travelTable">
+        <thead>
+          <tr>
+            <th class="date">Date</th>
+            <th class="time">Time</th>
+            <th class="text">Airline</th>
+            <th class="text">Name</th>
+            <th class="text">Ref Number</th>
+            <th class="action"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button class="add-btn" onclick="addRow('travelTable')">+ Row</button>
+  </div>
+
+  <div class="section">
+    <h2>Accommodation</h2>
+    <div class="table-wrapper">
+      <table id="accommodationTable">
+        <thead>
+          <tr>
+            <th class="date">Date</th>
+            <th class="time">Time</th>
+            <th class="text">Hotel</th>
+            <th class="text">Name</th>
+            <th class="text">Ref Number</th>
+            <th class="action"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button class="add-btn" onclick="addRow('accommodationTable')">+ Row</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const params = new URLSearchParams(window.location.search);
+    const tableId = params.get('id');
+    let saveTimeout;
+
+    async function loadData() {
+      const res = await fetch(`${API_BASE}/api/tables/${tableId}/travel`, {
+        headers: { Authorization: token }
+      });
+      const data = await res.json();
+      populateTable('travelTable', data.travel);
+      populateTable('accommodationTable', data.accommodation);
+    }
+
+    function populateTable(tableId, rows) {
+      const table = document.getElementById(tableId).querySelector("tbody");
+      table.innerHTML = '';
+      rows.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="date"><input type="date" value="${item.date || ''}"></td>
+          <td class="time"><input type="time" value="${item.time || ''}"></td>
+          <td class="text"><input type="text" value="${item.airline || item.hotel || ''}"></td>
+          <td class="text"><input type="text" value="${item.name || ''}"></td>
+          <td class="text"><input type="text" value="${item.ref || ''}"></td>
+          <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function addRow(tableId) {
+      const table = document.getElementById(tableId).querySelector("tbody");
+      const isTravel = tableId === 'travelTable';
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="date"><input type="date"></td>
+        <td class="time"><input type="time"></td>
+        <td class="text"><input type="text" placeholder="${isTravel ? 'Airline' : 'Hotel'}"></td>
+        <td class="text"><input type="text" placeholder="Name"></td>
+        <td class="text"><input type="text" placeholder="Ref #"></td>
+        <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
+      `;
+      table.appendChild(row);
+      debounceSave();
+    }
+
+    function collectTableData(tableId) {
+      const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
+      return Array.from(rows).map(row => {
+        const inputs = row.querySelectorAll('input');
+        return {
+          date: inputs[0].value,
+          time: inputs[1].value,
+          [tableId === 'travelTable' ? 'airline' : 'hotel']: inputs[2].value,
+          name: inputs[3].value,
+          ref: inputs[4].value
+        };
+      });
+    }
+
+    async function saveData() {
+      const travelRows = collectTableData('travelTable');
+      const accommodationRows = collectTableData('accommodationTable');
+      await fetch(`${API_BASE}/api/tables/${tableId}/travel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        },
+        body: JSON.stringify({ travel: travelRows, accommodation: accommodationRows })
+      });
+    }
+
+    function debounceSave() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveData, 500); // 0.5s after last change
+    }
+
+    function removeRow(button) {
+      const row = button.closest('tr');
+      row.parentElement.removeChild(row);
+      debounceSave();
+    }
+
+    function goBack() {
+      window.location.href = `event.html?id=${tableId}`;
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
+        headers: { Authorization: token }
+      });
+      if (res.ok) {
+        const table = await res.json();
+        document.getElementById('eventTitle').textContent = table.title;
+      }
+      await loadData();
+
+      // 🔥 Listen for typing/changing inside tables
+      document.getElementById('travelTable').addEventListener('input', debounceSave);
+      document.getElementById('accommodationTable').addEventListener('input', debounceSave);
+    });
+  </script>
+</body>
+</html>
