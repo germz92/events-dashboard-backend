@@ -1,0 +1,293 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0 5%;
+  background: #f4f4f4;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}    
+
+
+/* Top control bar */
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.top-controls .left,
+.top-controls .right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 950px;
+  margin: 20px 0;
+  table-layout: auto;
+}
+
+table th,
+table td {
+  height: 36px;
+  line-height: 1.4;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive column widths */
+table th:nth-child(1),
+table td:nth-child(1),
+table th:nth-child(6),
+table td:nth-child(6) {
+  width: 150px;
+}
+table th:nth-child(3),
+table td:nth-child(3),
+table th:nth-child(4),
+table td:nth-child(4),
+table th:nth-child(5),
+table td:nth-child(5) {
+  width: 120px;
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  margin: 10px 5px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: auto;
+  max-width: fit-content;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Input fields */
+input[type="date"],
+input[type="text"],
+input[type="time"],
+input#shareEmail {
+  padding: 8px 10px;
+  margin: 8px 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 16px;
+  width: auto;
+  max-width: 100%;
+}
+
+/* Form elements inside table */
+table input,
+table select {
+  height: 30px;
+  font-size: 16px;
+  padding: 4px 6px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Auth / dashboard components */
+.dashboard-container {
+  max-width: 100%;
+  width: 100%;
+  padding: 30px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  align-items: center; /* 🔧 this ensures content is centered */
+}
+
+
+.event-links {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.event-links a {
+  display: inline-block;
+  padding: 10px 16px;
+  margin: 5px;
+  background-color: #007BFF;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background 0.2s ease-in-out;
+  width: auto;               /* prevent full width */
+  max-width: 200px;          /* optional width limit */
+  text-align: center;
+}
+
+.event-links a:hover {
+  background-color: #0056b3;
+}
+
+/* Auth form styling */
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.auth-card h1 {
+  margin-bottom: 10px;
+  font-size: 28px;
+  text-align: center;
+}
+
+.auth-card h2 {
+  font-size: 18px;
+  margin: 10px 0 0;
+}
+
+.auth-card input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.auth-card button {
+  padding: 10px;
+  background-color: #007BFF;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.auth-card button:hover {
+  background-color: #0056b3;
+}
+
+/* Contact rows */
+.contacts-container {
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.contacts-container table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  min-width: 600px;
+}
+
+#contactRows .contact-row {
+  display: table-row;
+}
+
+#contactRows .contact-row input {
+  padding: 6px 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  min-width: 120px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#contactRows .contact-row td {
+  padding: 4px 8px;
+  background: #f9f9f9;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+@media (max-width: 768px) {
+
+  html {
+    width: 100%;
+  overflow-x: hidden;
+  }
+  body {
+  padding: 5px 8px;
+  }
+  
+  table {
+  max-width: 100%;
+  font-size: 16px;
+  }
+  
+  th, td {
+  padding: 8px;
+  font-size: 16px;
+  }
+  
+  h2 {
+  font-size: 16px;
+  }
+  
+  .back-btn {
+  padding: 8px 12px;
+  font-size: 16px;
+  }
+  
+  button {
+  padding: 5px 8px;
+  font-size: 16px;
+  }
+  
+  .modal-content {
+  width: 95%;
+  }
+  
+  select, input[type="text"] {
+  font-size: 16px;
+  }
+  }
+  

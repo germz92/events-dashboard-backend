@@ -1,0 +1,144 @@
+body {
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 30px;
+    color: #333;
+  }
+  
+  h1, h2 {
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  
+  .top-controls,
+  .filter-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .back-button {
+    background-color: #cccccc;
+    color: #333;
+    font-size: 0.95rem;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 20px;
+    margin-left: 10px;
+    transition: background 0.2s ease;
+  }
+  
+  .back-button:hover {
+    background-color: #b3b3b3;
+  }
+  
+  
+  select,
+  button {
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  
+  /* Uniform indigo buttons */
+  button {
+    background-color: #3f51b5;
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #2e3d99;
+    transform: translateY(-1px);
+  }
+  
+  #gearContainer.gear-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    padding: 10px 0;
+  }
+  
+  /* Gear list card styling */
+  .category {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 16px;
+    width: 260px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease;
+  }
+  
+  .category:hover {
+    transform: translateY(-4px);
+  }
+  
+  .category h3 {
+    margin: 0 0 16px 0;
+    font-size: 1.05rem;
+    color: #3f51b5;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+  }
+  
+  /* Item row styling */
+  .item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  
+  .item input[type="text"] {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+  }
+  
+  .item input[type="text"]:focus {
+    border-color: #3f51b5;
+  }
+  
+  .item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #3f51b5;
+  }
+  
+  /* "+ Add Item" button (uses same base button style) */
+  .add-btn {
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .category {
+      width: 90%;
+    }
+  
+    #gearContainer.gear-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  
