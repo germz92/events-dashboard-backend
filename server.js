@@ -377,22 +377,22 @@ app.put('/api/tables/:id/reorder-rows', authenticate, async (req, res) => {
 });
 
 app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
-  const table = await Table.findById(req.params.id);
-  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-    return res.status(403).json({ error: 'Not authorized or not found' });
+  const { id, rowId } = req.params;
+  const updatedRow = req.body;
+
+  const table = await Table.findById(id);
+  if (!table) return res.status(404).json({ error: 'Table not found' });
+
+  const rowIndex = table.rows.findIndex(row => row._id.toString() === rowId);
+  if (rowIndex === -1) {
+    return res.status(400).json({ error: 'Invalid row index' });
   }
 
-  const rowIndex = table.rows.findIndex(r => r._id?.toString() === req.params.rowId);
-  if (rowIndex === -1) return res.status(404).json({ error: 'Row not found' });
-
-  
-  // ✅ Safely update fields in place
-  Object.assign(table.rows[rowIndex], req.body);
-
+  table.rows[rowIndex] = { ...table.rows[rowIndex]._doc, ...updatedRow };
   await table.save();
-  res.json({ message: 'Row updated' });
-});
 
+  res.json({ success: true });
+});
 
 
 // SERVER
