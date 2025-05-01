@@ -54,9 +54,9 @@ app.post('/api/tables', authenticate, async (req, res) => {
 
   const table = new Table({
     title,
-    owner: req.user.id,
-    rows: [],
+    owners: [req.user.id],  // ✅ Corrected here
     sharedWith: [],
+    rows: [],
     general: {
       client: general?.client || '',
       start: general?.start || '',
@@ -83,12 +83,13 @@ app.post('/api/tables', authenticate, async (req, res) => {
 app.get('/api/tables', authenticate, async (req, res) => {
   const tables = await Table.find({
     $or: [
-      { owner: req.user.id },
+      { owners: req.user.id }, // ✅ use correct field name
       { sharedWith: req.user.id }
     ]
   });
   res.json(tables);
 });
+
 
 app.get('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
@@ -130,24 +131,6 @@ app.put('/api/tables/:id/cardlog', authenticate, async (req, res) => {
   await table.save();
 
   res.json({ message: 'Card log saved' });
-});
-
-// SHARING
-app.post('/api/tables/:id/share', authenticate, async (req, res) => {
-  const userToShare = await User.findOne({ email: req.body.email });
-  if (!userToShare) return res.status(404).json({ error: 'User not found' });
-
-  const table = await Table.findById(req.params.id);
-  if (!table || !table.owners.includes(req.user.id)) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
-
-  if (!table.sharedWith.includes(userToShare._id)) {
-    table.sharedWith.push(userToShare._id);
-    await table.save();
-  }
-
-  res.json({ message: 'Shared' });
 });
 
 // GENERAL INFO
@@ -330,26 +313,36 @@ app.post('/api/tables/:id/share', authenticate, async (req, res) => {
   const { email, makeOwner } = req.body;
   const tableId = req.params.id;
 
-  const userToShare = await User.findOne({ email: email.toLowerCase().trim() });
-  if (!userToShare) return res.status(404).json({ error: 'User not found' });
+  try {
+    const userToShare = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!userToShare) return res.status(404).json({ error: 'User not found' });
 
-  const table = await Table.findById(tableId);
-  if (!table) return res.status(404).json({ error: 'Table not found' });
+    const table = await Table.findById(tableId);
+    if (!table) return res.status(404).json({ error: 'Table not found' });
 
-  if (!table.owner.equals(req.user._id)) {
-    return res.status(403).json({ error: 'Only the owner can share this table' });
-  }
+    const ownerIds = table.owners.map(id => id.toString());
+    const targetId = userToShare._id.toString();
 
-  if (makeOwner) {
-    table.owner = userToShare._id;  // 👈 this replaces the current owner
-  } else {
-    if (!table.sharedWith.includes(userToShare._id)) {
-      table.sharedWith.push(userToShare._id);
+    if (!ownerIds.includes(req.user.id)) {
+      return res.status(403).json({ error: 'Only an owner can share this table' });
     }
-  }
 
-  await table.save();
-  res.json({ message: makeOwner ? 'Ownership transferred' : 'User added to table' });
+    if (makeOwner) {
+      if (!ownerIds.includes(targetId)) {
+        table.owners.push(userToShare._id);
+      }
+    } else {
+      if (!table.sharedWith.map(id => id.toString()).includes(targetId)) {
+        table.sharedWith.push(userToShare._id);
+      }
+    }
+
+    await table.save();
+    res.json({ message: makeOwner ? 'Ownership granted' : 'User added to table' });
+  } catch (err) {
+    console.error('Error sharing table:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 
