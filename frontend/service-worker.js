@@ -9,11 +9,27 @@ const urlsToCache = [
 ];
 
 self.addEventListener("install", (event) => {
+  self.skipWaiting(); // 🔥 Immediately activate this version
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
     })
   );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key); // 🔥 Delete old caches
+          }
+        })
+      )
+    )
+  );
+  self.clients.claim(); // 🔥 Take control of all pages
 });
 
 self.addEventListener("fetch", (event) => {
