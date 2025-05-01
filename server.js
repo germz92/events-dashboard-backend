@@ -385,6 +385,11 @@ app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
   const rowIndex = table.rows.findIndex(r => r._id?.toString() === req.params.rowId);
   if (rowIndex === -1) return res.status(404).json({ error: 'Row not found' });
 
+  console.log('PUT /api/tables/:id/rows/:rowId', {
+    rowId: req.params.rowId,
+    body: req.body
+  });
+  
   // ✅ Safely update fields in place
   Object.assign(table.rows[rowIndex], req.body);
 
