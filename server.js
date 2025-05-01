@@ -313,6 +313,17 @@ app.put('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   res.json({ message: 'Row updated' });
 });
 
+// Serve frontend static files
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// SPA fallback for client-side routing
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API route not found' });
+  }
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
 
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
