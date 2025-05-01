@@ -5,6 +5,7 @@ let saveTimeout;
 let searchQuery = '';
 let filterDate = 'all';
 let allNotesVisible = false;
+let isOwner = false;
 
 function formatDate(dateStr) {
   const [year, month, day] = dateStr.split('-');
@@ -26,17 +27,34 @@ function formatTo12Hour(time) {
 
 async function loadPrograms() {
   try {
-    const res = await fetch(`${API_BASE}/api/tables/${tableId}/program-schedule`, {
+    const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
       headers: { Authorization: localStorage.getItem('token') },
     });
     const data = await res.json();
     tableData.programs = data.programSchedule || [];
+    isOwner = data.owner === getUserIdFromToken();
     renderProgramSections();
+
+    // 🔒 Hide date controls for non-owners
+    if (!isOwner) {
+      const newDateInput = document.getElementById('newDate');
+      const addDateBtn = document.querySelector('button[onclick="addDateSection()"]');
+      if (newDateInput) newDateInput.style.display = 'none';
+      if (addDateBtn) addDateBtn.style.display = 'none';
+    }
   } catch (err) {
     console.error('Failed to load programs:', err);
     tableData.programs = [];
     renderProgramSections();
   }
+}
+
+
+function getUserIdFromToken() {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.id;
 }
 
 async function savePrograms() {
@@ -107,28 +125,45 @@ function renderProgramSections() {
     headerWrapper.className = 'date-header';
     headerWrapper.innerHTML = `
       <div>${formatDate(date)}</div>
-      <button onclick="deleteDate('${date}')">🗑️</button>
+      ${isOwner ? `<button onclick="deleteDate('${date}')">🗑️</button>` : ''}
     `;
     section.appendChild(headerWrapper);
 
     matchingPrograms.forEach(program => {
       const entry = document.createElement('div');
-      entry.className = 'program-entry';
+      entry.className = 'program-entry' + (program.done ? ' done-entry' : '');
       entry.setAttribute('data-program-index', program.__index);
+
       entry.innerHTML = `
-        <input class="program-name" type="text" placeholder="Program Name" value="${program.name || ''}" 
-          onfocus="enableEdit(this)" onblur="autoSave(this, '${program.date}', ${program.__index}, 'name')">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <input class="program-name" type="text"
+            ${!isOwner ? 'readonly' : ''}
+            placeholder="Program Name"
+            style="flex: 1;"
+            value="${program.name || ''}" 
+            onfocus="${isOwner ? 'enableEdit(this)' : ''}" 
+            onblur="${isOwner ? `autoSave(this, '${program.date}', ${program.__index}, 'name')` : ''}">
+
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+            <input type="checkbox" class="done-checkbox"
+              style="width: 20px; height: 20px;"
+              ${program.done ? 'checked' : ''}
+              onchange="toggleDone(this, ${program.__index})">
+          </label>
+        </div>
 
         <div style="display: flex; align-items: center; gap: 3px;">
           <input type="time" placeholder="Start Time" style="flex: 1; min-width: 0; text-align: left;"
             value="${program.startTime || ''}"
-            onfocus="enableEdit(this)"
-            onblur="autoSave(this, '${program.date}', ${program.__index}, 'startTime')">
+            ${!isOwner ? 'readonly' : ''}
+            onfocus="${isOwner ? 'enableEdit(this)' : ''}"
+            onblur="${isOwner ? `autoSave(this, '${program.date}', ${program.__index}, 'startTime')` : ''}">
 
           <input type="time" placeholder="End Time" style="flex: 1; min-width: 0; text-align: left;"
             value="${program.endTime || ''}"
-            onfocus="enableEdit(this)"
-            onblur="autoSave(this, '${program.date}', ${program.__index}, 'endTime')">
+            ${!isOwner ? 'readonly' : ''}
+            onfocus="${isOwner ? 'enableEdit(this)' : ''}"
+            onblur="${isOwner ? `autoSave(this, '${program.date}', ${program.__index}, 'endTime')` : ''}">
         </div>
 
         <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
@@ -136,29 +171,32 @@ function renderProgramSections() {
             <span style="margin-right: 4px;">📍</span>
             <textarea style="flex: 1; resize: none;"
               placeholder="Location"
-              onfocus="enableEdit(this)"
-              oninput="autoResizeTextarea(this)"
-              onblur="autoSave(this, '${program.date}', ${program.__index}, 'location')">${program.location || ''}</textarea>
+              ${!isOwner ? 'readonly' : ''}
+              onfocus="${isOwner ? 'enableEdit(this)' : ''}"
+              oninput="${isOwner ? 'autoResizeTextarea(this)' : ''}"
+              onblur="${isOwner ? `autoSave(this, '${program.date}', ${program.__index}, 'location')` : ''}">${program.location || ''}</textarea>
           </div>
           <div style="display: flex; align-items: center; flex: 1;">
             <span style="margin-right: 4px;">👤</span>
             <textarea style="flex: 1; resize: none;"
               placeholder="Photographer"
-              onfocus="enableEdit(this)"
-              oninput="autoResizeTextarea(this)"
-              onblur="autoSave(this, '${program.date}', ${program.__index}, 'photographer')">${program.photographer || ''}</textarea>
+              ${!isOwner ? 'readonly' : ''}
+              onfocus="${isOwner ? 'enableEdit(this)' : ''}"
+              oninput="${isOwner ? 'autoResizeTextarea(this)' : ''}"
+              onblur="${isOwner ? `autoSave(this, '${program.date}', ${program.__index}, 'photographer')` : ''}">${program.photographer || ''}</textarea>
           </div>
         </div>
 
         <button class="show-notes-btn" onclick="toggleNotes(this)">Show Notes</button>
         <div class="notes-field" style="display:none;">
           <textarea placeholder="Notes"
-            onfocus="enableEdit(this)"
-            oninput="autoResizeTextarea(this)"
-            onblur="autoSave(this, '${program.date}', ${program.__index}, 'notes')">${program.notes || ''}</textarea>
+            ${!isOwner ? 'readonly' : ''}
+            onfocus="${isOwner ? 'enableEdit(this)' : ''}"
+            oninput="${isOwner ? 'autoResizeTextarea(this)' : ''}"
+            onblur="${isOwner ? `autoSave(this, '${program.date}', ${program.__index}, 'notes')` : ''}">${program.notes || ''}</textarea>
         </div>
 
-        <button class="delete-btn" onclick="deleteProgram(this)">🗑️</button>
+        ${isOwner ? `<button class="delete-btn" onclick="deleteProgram(this)">🗑️</button>` : ''}
       `;
       section.appendChild(entry);
     });
@@ -167,7 +205,7 @@ function renderProgramSections() {
     addBtn.className = 'add-btn';
     addBtn.textContent = '+ Add Row';
     addBtn.onclick = () => addProgram(date);
-    section.appendChild(addBtn);
+    if (isOwner) section.appendChild(addBtn);
 
     container.appendChild(section);
   });
@@ -177,6 +215,17 @@ function renderProgramSections() {
   }, 50);
 }
 
+
+function toggleDone(checkbox, index) {
+  if (!isNaN(index)) {
+    tableData.programs[index].done = checkbox.checked;
+    const entry = checkbox.closest('.program-entry');
+    if (entry) {
+      entry.classList.toggle('done-entry', checkbox.checked);
+    }
+    scheduleSave();
+  }
+}
 
 function matchesSearch(program) {
   if (filterDate !== 'all' && program.date !== filterDate) return false;
@@ -251,6 +300,7 @@ function captureCurrentPrograms() {
         location: entry.querySelector('textarea[placeholder="Location"]')?.value.trim() || '',
         photographer: entry.querySelector('textarea[placeholder="Photographer"]')?.value.trim() || '',
         notes: entry.querySelector('textarea[placeholder="Notes"]')?.value.trim() || '',
+        done: entry.querySelector('input.done-checkbox')?.checked || false,
       });
     });
   });

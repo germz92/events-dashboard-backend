@@ -11,6 +11,7 @@ let cachedRoles = [
   "Headshot Booth Photographer",
   "Assistant"
 ];
+let isOwner = false;
 
 function goBack() {
   window.location.href = `event.html?id=${tableId}`;
@@ -46,16 +47,38 @@ function formatDateLocal(dateStr) {
   });
 }
 
+function getUserIdFromToken() {
+  if (!token) return null;
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.id;
+}
+
 async function loadTable() {
   const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
     headers: { Authorization: token }
   });
   tableData = await res.json();
+
+  // ✅ Set ownership check first
+  const userId = getUserIdFromToken();
+  isOwner = tableData.owner === userId;
+
+  // 🔒 Then hide UI if not owner
+  if (!isOwner) {
+    const addDateBtn = document.getElementById('addDateBtn');
+    if (addDateBtn) addDateBtn.style.display = 'none';
+
+    const newDateInput = document.getElementById('newDate');
+    if (newDateInput) newDateInput.style.display = 'none';
+  }
+
   if (!cachedUsers.length) await preloadUsers();
   document.getElementById('tableTitle').textContent = tableData.title;
   renderTableSection();
   updateCrewCount();
 }
+
+
 
 async function preloadUsers() {
   const res = await fetch(`${API_BASE}/api/users`, {
@@ -74,31 +97,26 @@ function renderTableSection() {
   const sortDirection = document.getElementById('sortDirection')?.value || 'asc';
   const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
 
-  // Extract and sort unique dates
   let dates = [...new Set(tableData.rows.map(row => row.date))];
   dates.sort((a, b) => new Date(a) - new Date(b));
 
-  // Update date filter dropdown
   if (filterDropdown) {
     const currentValue = filterDropdown.value;
     filterDropdown.innerHTML = `<option value="">Show All</option>` +
       dates.map(d => `<option value="${d}" ${d === currentValue ? 'selected' : ''}>${formatDateLocal(d)}</option>`).join('');
   }
 
-  // Apply selected date filter
   const selectedDate = filterDropdown?.value;
   if (selectedDate) {
     dates = dates.filter(d => d === selectedDate);
   }
 
-  // Apply sort direction
   if (sortDirection === 'desc') {
     dates.reverse();
   }
 
   const visibleNames = new Set();
 
-  // Render each date section
   dates.forEach(date => {
     const sectionBox = document.createElement('div');
     sectionBox.className = 'date-section';
@@ -111,18 +129,19 @@ function renderTableSection() {
 
     const header = document.createElement('h2');
     header.textContent = formatDateLocal(date);
-
-    const deleteDateBtn = document.createElement('button');
-    deleteDateBtn.textContent = '🗑️';
-    deleteDateBtn.style.background = 'transparent';
-    deleteDateBtn.style.border = 'none';
-    deleteDateBtn.style.cursor = 'pointer';
-    deleteDateBtn.style.fontSize = '18px';
-    deleteDateBtn.title = 'Delete Date';
-    deleteDateBtn.onclick = () => deleteDate(date);
-
     headerWrapper.appendChild(header);
-    headerWrapper.appendChild(deleteDateBtn);
+
+    if (isOwner) {
+      const deleteDateBtn = document.createElement('button');
+      deleteDateBtn.textContent = '🗑️';
+      deleteDateBtn.style.background = 'transparent';
+      deleteDateBtn.style.border = 'none';
+      deleteDateBtn.style.cursor = 'pointer';
+      deleteDateBtn.style.fontSize = '18px';
+      deleteDateBtn.title = 'Delete Date';
+      deleteDateBtn.onclick = () => deleteDate(date);
+      headerWrapper.appendChild(deleteDateBtn);
+    }
 
     const wrapper = document.createElement('div');
     wrapper.className = 'table-wrapper';
@@ -177,9 +196,11 @@ function renderTableSection() {
         <td><span id="${rowId}-role">${row.role}</span></td>
         <td><span id="${rowId}-notes">${row.notes}</span></td>
         <td style="text-align: center;">
-          <button onclick="toggleEdit('${date}', ${index}, true)">✏️</button>
-          <button onclick="saveEdit('${date}', ${index})" style="display:none;">💾</button>
-          <button onclick="deleteRow('${date}', ${index})" title="Delete" style="background: transparent; border: none; font-size: 18px; cursor: pointer;">🗑️</button>
+          ${isOwner ? `
+            <button onclick="toggleEdit('${date}', ${index}, true)">✏️</button>
+            <button onclick="saveEdit('${date}', ${index})" style="display:none;">💾</button>
+            <button onclick="deleteRow('${date}', ${index})" title="Delete" style="background: transparent; border: none; font-size: 18px; cursor: pointer;">🗑️</button>
+          ` : ''}
         </td>
       `;
       tbody.appendChild(tr);
@@ -189,16 +210,18 @@ function renderTableSection() {
       }
     });
 
-    const actionRow = document.createElement('tr');
-    const actionTd = document.createElement('td');
-    actionTd.colSpan = 7;
-    const addBtn = document.createElement('button');
-    addBtn.className = 'add-row-btn';
-    addBtn.textContent = 'Add Row';
-    addBtn.onclick = () => showRowInputs(date, tbody);
-    actionTd.appendChild(addBtn);
-    actionRow.appendChild(actionTd);
-    tbody.appendChild(actionRow);
+    if (isOwner) {
+      const actionRow = document.createElement('tr');
+      const actionTd = document.createElement('td');
+      actionTd.colSpan = 7;
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-row-btn';
+      addBtn.textContent = 'Add Row';
+      addBtn.onclick = () => showRowInputs(date, tbody);
+      actionTd.appendChild(addBtn);
+      actionRow.appendChild(actionTd);
+      tbody.appendChild(actionRow);
+    }
 
     table.appendChild(tbody);
     wrapper.appendChild(table);
@@ -207,7 +230,6 @@ function renderTableSection() {
     container.appendChild(sectionBox);
   });
 
-  // ✅ Update dynamic crew count based on visible names
   const crewCountEl = document.getElementById('crewCount');
   if (crewCountEl) {
     crewCountEl.innerHTML = `<strong>Crew Count: ${visibleNames.size}</strong>`;
@@ -216,7 +238,9 @@ function renderTableSection() {
 
 
 
+
 function toggleEdit(date, index, editing) {
+  if (!isOwner) return;
   const prefix = `row-${date}-${index}`;
 
   // ✅ Find the correct row by skipping placeholders and matching index
@@ -326,6 +350,7 @@ function toggleEdit(date, index, editing) {
 
 
 async function saveEdit(date, index) {
+  if (!isOwner) return;
   const prefix = `row-${date}-${index}`;
   const startTime = document.getElementById(`${prefix}-startTime`).value;
   const endTime = document.getElementById(`${prefix}-endTime`).value;
@@ -370,6 +395,7 @@ async function saveEdit(date, index) {
 
 
 async function deleteRow(date, index) {
+  if (!isOwner) return;
   const rowsForDate = tableData.rows.filter(row => row.date === date);
   const globalIndex = tableData.rows.findIndex((row, i) => row === rowsForDate[index]);
 
@@ -386,6 +412,7 @@ async function deleteRow(date, index) {
 }
 
 async function deleteDate(date) {
+  if (!isOwner) return;
   if (!confirm('Delete this entire day?')) return;
 
   tableData.rows = tableData.rows.filter(row => row.date !== date);
@@ -491,6 +518,7 @@ function showRowInputs(date, tbody) {
 
 
 async function addDateSection() {
+  if (!isOwner) return;
   const date = document.getElementById('newDate').value;
   if (!date) return alert('Please select a date');
 
@@ -529,6 +557,7 @@ async function addDateSection() {
 }
 
 async function addRowToDate(date) {
+  if (!isOwner) return;
   const start = document.getElementById(`start-${date}`).value;
   const end = document.getElementById(`end-${date}`).value;
   const row = {

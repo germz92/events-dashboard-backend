@@ -1,6 +1,7 @@
 const token = localStorage.getItem('token');
 const params = new URLSearchParams(window.location.search);
 const tableId = params.get('id');
+let isOwner = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (tableId && token) {
@@ -11,6 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (res.ok) {
       const table = await res.json();
       const general = table.general || {};
+      const userId = getUserIdFromToken();
+      isOwner = table.owner === userId;
 
       document.getElementById('eventTitle').textContent = table.title;
 
@@ -27,13 +30,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('start').value = general.start || '';
       document.getElementById('end').value = general.end || '';
 
-      (general.contacts || []).forEach(data => renderContactRow(data, true));
-      (general.locations || []).forEach(data => renderLocationRow(data, true));
+      (general.contacts || []).forEach(data => renderContactRow(data, !isOwner));
+      (general.locations || []).forEach(data => renderLocationRow(data, !isOwner));
 
-      document.getElementById('editBtn').style.display = 'inline-block';
+      document.getElementById('editBtn').style.display = isOwner ? 'inline-block' : 'none';
+      document.querySelectorAll('.add-row-btn').forEach(btn => {
+        btn.style.display = isOwner ? 'inline-block' : 'none';
+      });
     }
   }
 });
+
+function getUserIdFromToken() {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.id;
+}
 
 function createLinkedTextarea(value, type) {
   const textarea = document.createElement('textarea');
@@ -147,13 +160,16 @@ function collectLocations() {
 }
 
 async function saveGeneralInfo() {
-  console.log("Saving general info...");
+  if (!isOwner) {
+    alert("You are not allowed to edit this page.");
+    return;
+  }
 
-  function getTextValue(id) {
+  const getTextValue = id => {
     const el = document.getElementById(id);
     if (!el) return '';
     return el.tagName.toLowerCase() === 'textarea' ? el.value.trim() : el.textContent.trim();
-  }
+  };
 
   const location = getTextValue('location');
   const weather = getTextValue('weather');
@@ -164,18 +180,7 @@ async function saveGeneralInfo() {
   const contacts = collectContacts();
   const locations = collectLocations();
 
-  const generalData = {
-    location,
-    weather,
-    start,
-    end,
-    attendees,
-    budget,
-    contacts,
-    locations
-  };
-
-  console.log("Data being saved:", generalData);
+  const generalData = { location, weather, start, end, attendees, budget, contacts, locations };
 
   try {
     const res = await fetch(`${API_BASE}/api/tables/${tableId}/general`, {
@@ -188,8 +193,6 @@ async function saveGeneralInfo() {
     });
 
     const responseText = await res.text();
-    console.log("Response from backend:", responseText);
-
     if (!res.ok) {
       throw new Error(`Failed to save: ${res.status} ${responseText}`);
     }
@@ -201,8 +204,6 @@ async function saveGeneralInfo() {
     alert("Error saving general info.");
   }
 }
-
-
 
 function autoResizeTextarea(el) {
   el.style.height = 'auto';
@@ -227,12 +228,13 @@ function collectReadOnlyData(selector, count) {
 }
 
 function switchToEdit() {
+  if (!isOwner) return;
+
   ['location', 'weather', 'attendees', 'budget'].forEach(id => {
     const div = document.getElementById(id);
     const textarea = document.createElement('textarea');
     textarea.id = id;
     textarea.value = div.dataset.value || div.textContent || '';
-    textarea.className = '';
     div.replaceWith(textarea);
     autoResizeTextarea(textarea);
   });
@@ -262,4 +264,3 @@ function addLocationRow() {
   }
   renderLocationRow({}, false);
 }
-

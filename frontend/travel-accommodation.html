@@ -57,6 +57,13 @@
     const params = new URLSearchParams(window.location.search);
     const tableId = params.get('id');
     let saveTimeout;
+    let isOwner = false;
+
+    function getUserIdFromToken() {
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id;
+    }
 
     async function loadData() {
       const res = await fetch(`${API_BASE}/api/tables/${tableId}/travel`, {
@@ -143,19 +150,40 @@
     }
 
     window.addEventListener("DOMContentLoaded", async () => {
-      const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
-        headers: { Authorization: token }
-      });
-      if (res.ok) {
-        const table = await res.json();
-        document.getElementById('eventTitle').textContent = table.title;
-      }
-      await loadData();
+  const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
+    headers: { Authorization: token }
+  });
 
-      // 🔥 Listen for typing/changing inside tables
+  if (res.ok) {
+    const table = await res.json();
+    document.getElementById('eventTitle').textContent = table.title;
+
+    const userId = getUserIdFromToken();
+    isOwner = table.owner === userId;
+
+    await loadData();
+
+    if (!isOwner) {
+      // 🔒 Disable all inputs and hide delete buttons
+      document.querySelectorAll('input').forEach(input => {
+        input.disabled = true;
+        input.style.background = '#f9f9f9';
+        input.style.cursor = 'not-allowed';
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
+
+      // 🔒 Hide all + Row buttons
+      document.querySelectorAll('.add-btn').forEach(btn => btn.style.display = 'none');
+    } else {
+      // 🔓 Only bind save listeners if owner
       document.getElementById('travelTable').addEventListener('input', debounceSave);
       document.getElementById('accommodationTable').addEventListener('input', debounceSave);
-    });
+    }
+  }
+});
+
+
   </script>
 </body>
 </html>

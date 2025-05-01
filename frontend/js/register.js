@@ -18,6 +18,6 @@ async function register() {
   alert(data.message || JSON.stringify(data));
 
   if (data.message === 'User created') {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   }
 }

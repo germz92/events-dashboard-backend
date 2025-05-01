@@ -1,6 +1,7 @@
 // 🔥 Global variables
 let users = [];
 const cameras = ["A7IV-A", "A7IV-B", "A7IV-C", "A7IV-D", "A7IV-E", "A7RV-A", "FX3-A", "A7IV", "A7RV", "A7III"];
+let isOwner = false;
 
 async function loadUsers() {
   const token = localStorage.getItem('token');
@@ -16,10 +17,19 @@ async function loadCardLog() {
   const res = await fetch(`${API_BASE}/api/tables/${eventId}`, { headers: { Authorization: token } });
   if (!res.ok) return console.error('Failed to load table data');
   const table = await res.json();
+  const userId = getUserIdFromToken();
+  isOwner = table.owner === userId;
   if (!table.cardLog || table.cardLog.length === 0) return;
   const container = document.getElementById('table-container');
   container.innerHTML = '';
   table.cardLog.forEach(day => addDaySection(day.date, day.entries));
+}
+
+function getUserIdFromToken() {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.id;
 }
 
 function addDaySection(date, entries = []) {
@@ -30,7 +40,7 @@ function addDaySection(date, entries = []) {
   dayDiv.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: center;">
       <h3 style="margin: 0;">${date}</h3>
-      <button class="delete-day-btn" data-date="${date}" title="Delete Day" style="background: transparent; border: none; font-size: 20px; cursor: pointer;">🗑️</button>
+      ${isOwner ? `<button class="delete-day-btn" data-date="${date}" title="Delete Day" style="background: transparent; border: none; font-size: 20px; cursor: pointer;">🗑️</button>` : ''}
     </div>
     <table>
       <colgroup>
@@ -74,7 +84,7 @@ function addRow(date, entry = {}) {
       <option value="add-new-user">➕ Add New User</option>
     </select></td>
     <td style="text-align:center;">
-      <button class="delete-row-btn" title="Delete Row" style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: #d11a2a;">🗑️</button>
+      ${isOwner ? '<button class="delete-row-btn" title="Delete Row" style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: #d11a2a;">🗑️</button>' : ''}
     </td>
   `;
   tbody.appendChild(row);
@@ -180,11 +190,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       addRow(date);
       saveToMongoDB();
     }
-    if (e.target.classList.contains('delete-row-btn')) {
+    if (e.target.classList.contains('delete-row-btn') && isOwner) {
       e.target.closest('tr').remove();
       saveToMongoDB();
     }
-    if (e.target.classList.contains('delete-day-btn')) {
+    if (e.target.classList.contains('delete-day-btn') && isOwner) {
       const dayDiv = e.target.closest('.day-table');
       if (dayDiv && confirm('Delete this entire day?')) {
         dayDiv.remove();

@@ -1,5 +1,5 @@
 // LOGIN
-window.login = async function() {
+window.login = async function () {
   const email = document.getElementById('email').value.trim().toLowerCase();
   const password = document.getElementById('password').value.trim();
 
@@ -46,3 +46,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+
+// REGISTER
+window.register = async function () {
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const fullName = document.getElementById('regFullName').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+
+  if (!email || !fullName || !password) {
+    alert('Please fill in all fields.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, fullName, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+
+    alert(data.message || 'User created');
+
+    if (data.message === 'User created') {
+      window.location.href = 'login.html';
+    }
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+    console.error(err);
+  }
+}
