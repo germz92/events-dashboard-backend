@@ -13,6 +13,18 @@ const gearCategorySchema = new mongoose.Schema({
   Accessories: [itemSchema]
 }, { _id: false });
 
+// ✅ Define a schema for individual program entries
+const programSchema = new mongoose.Schema({
+  date: String,
+  name: String,
+  startTime: String,
+  endTime: String,
+  location: String,
+  photographer: String,
+  notes: String,
+  done: { type: Boolean, default: false }
+}, { _id: false });
+
 const tableSchema = new mongoose.Schema({
   title: String,
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -51,7 +63,7 @@ const tableSchema = new mongoose.Schema({
         event: String
       }
     ]
-  }, 
+  },
   gear: {
     lists: {
       type: Map,
@@ -90,8 +102,9 @@ const tableSchema = new mongoose.Schema({
       ]
     }
   ],
+  // ✅ Properly typed programSchedule with "done"
   programSchedule: {
-    type: Array,
+    type: [programSchema],
     default: []
   }
 }, { timestamps: true });
