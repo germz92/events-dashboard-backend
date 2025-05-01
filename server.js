@@ -345,6 +345,24 @@ app.post('/api/tables/:id/share', authenticate, async (req, res) => {
   }
 });
 
+app.delete('/api/tables/:id/rows-by-id/:rowId', authenticate, async (req, res) => {
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
+
+  const rowId = req.params.rowId;
+  const originalLength = table.rows.length;
+
+  table.rows = table.rows.filter(row => row._id?.toString() !== rowId);
+
+  if (table.rows.length === originalLength) {
+    return res.status(404).json({ error: 'Row not found' });
+  }
+
+  await table.save();
+  res.json({ message: 'Row deleted' });
+});
 
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
