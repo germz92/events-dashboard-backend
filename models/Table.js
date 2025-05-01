@@ -13,7 +13,6 @@ const gearCategorySchema = new mongoose.Schema({
   Accessories: [itemSchema]
 }, { _id: false });
 
-// ✅ Define a schema for individual program entries
 const programSchema = new mongoose.Schema({
   date: String,
   name: String,
@@ -25,21 +24,25 @@ const programSchema = new mongoose.Schema({
   done: { type: Boolean, default: false }
 }, { _id: false });
 
+// ✅ NEW: Separate crew row schema with ObjectId _id
+const crewRowSchema = new mongoose.Schema({
+  date: String,
+  role: String,
+  name: String,
+  startTime: String,
+  endTime: String,
+  totalHours: Number,
+  notes: String
+}, { _id: true }); // ✅ Adds _id to each row for bulletproof tracking
+
 const tableSchema = new mongoose.Schema({
   title: String,
   owners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  rows: [
-    {
-      date: String,
-      role: String,
-      name: String,
-      startTime: String,
-      endTime: String,
-      totalHours: Number,
-      notes: String
-    }
-  ],
+  
+  // ✅ Updated to use schema with _id
+  rows: [crewRowSchema],
+  
   general: {
     location: String,
     weather: String,
@@ -89,7 +92,6 @@ const tableSchema = new mongoose.Schema({
       ref: String
     }
   ],
-  
   cardLog: [
     {
       date: String,
@@ -103,7 +105,6 @@ const tableSchema = new mongoose.Schema({
       ]
     }
   ],
-  // ✅ Properly typed programSchedule with "done"
   programSchedule: {
     type: [programSchema],
     default: []
