@@ -376,6 +376,25 @@ app.put('/api/tables/:id/reorder-rows', authenticate, async (req, res) => {
   res.json({ message: 'Row order saved' });
 });
 
+app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
+  const table = await Table.findById(req.params.id);
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    return res.status(403).json({ error: 'Not authorized or not found' });
+  }
+
+  const rowIndex = table.rows.findIndex(r => r._id?.toString() === req.params.rowId);
+  if (rowIndex === -1) return res.status(404).json({ error: 'Row not found' });
+
+  // ✅ Merge updated fields with existing row
+  table.rows[rowIndex] = {
+    ...table.rows[rowIndex]._doc, // retain untouched fields like _id, date
+    ...req.body                   // overwrite with new values
+  };
+
+  await table.save();
+  res.json({ message: 'Row updated' });
+});
+
 
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
