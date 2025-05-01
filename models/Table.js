@@ -43,8 +43,15 @@ const tableSchema = new mongoose.Schema({
         email: String,
         role: String
       }
+    ],
+    locations: [
+      {
+        name: String,
+        address: String,
+        event: String
+      }
     ]
-  },
+  }, 
   gear: {
     lists: {
       type: Map,

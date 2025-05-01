@@ -164,10 +164,16 @@ app.put('/api/tables/:id/general', authenticate, async (req, res) => {
   if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
-  table.general = req.body;
+
+  table.general = {
+    ...table.general,  // keep existing data
+    ...req.body         // overwrite with new data
+  };
+
   await table.save();
   res.json({ message: 'General info updated' });
 });
+
 
 //GEAR
 // ✅ GET gear checklist(s)
