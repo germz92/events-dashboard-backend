@@ -1,4 +1,14 @@
 body {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+
+body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0 5%;
@@ -251,9 +261,10 @@ table select {
 @media (max-width: 768px) {
 
   html {
-    width: 100%;
+  width: 100%;
   overflow-x: hidden;
   }
+
   body {
   padding: 5px 8px;
   }

@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const table = await res.json();
       const general = table.general || {};
       const userId = getUserIdFromToken();
-      isOwner = table.owner === userId;
+      isOwner = Array.isArray(table.owners) && table.owners.includes(userId);
 
       document.getElementById('eventTitle').textContent = table.title;
 

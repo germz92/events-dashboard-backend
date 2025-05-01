@@ -159,7 +159,7 @@
     document.getElementById('eventTitle').textContent = table.title;
 
     const userId = getUserIdFromToken();
-    isOwner = table.owner === userId;
+    isOwner = Array.isArray(table.owners) && table.owners.includes(userId);
 
     await loadData();
 

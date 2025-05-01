@@ -18,7 +18,7 @@ async function loadCardLog() {
   if (!res.ok) return console.error('Failed to load table data');
   const table = await res.json();
   const userId = getUserIdFromToken();
-  isOwner = table.owner === userId;
+  isOwner = Array.isArray(table.owners) && table.owners.includes(userId);
   if (!table.cardLog || table.cardLog.length === 0) return;
   const container = document.getElementById('table-container');
   container.innerHTML = '';
