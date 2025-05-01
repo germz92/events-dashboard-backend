@@ -92,7 +92,7 @@ app.get('/api/tables', authenticate, async (req, res) => {
 
 app.get('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json(table);
@@ -100,7 +100,7 @@ app.get('/api/tables/:id', authenticate, async (req, res) => {
 
 app.post('/api/tables/:id/rows', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.rows.push(req.body);
@@ -110,7 +110,7 @@ app.post('/api/tables/:id/rows', authenticate, async (req, res) => {
 
 app.put('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || !table.owner.equals(req.user.id)) {
+  if (!table || !table.owners.includes(req.user.id)) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.rows = req.body.rows;
@@ -122,7 +122,7 @@ app.put('/api/tables/:id', authenticate, async (req, res) => {
 app.put('/api/tables/:id/cardlog', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
   
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -138,7 +138,7 @@ app.post('/api/tables/:id/share', authenticate, async (req, res) => {
   if (!userToShare) return res.status(404).json({ error: 'User not found' });
 
   const table = await Table.findById(req.params.id);
-  if (!table || !table.owner.equals(req.user.id)) {
+  if (!table || !table.owners.includes(req.user.id)) {
     return res.status(403).json({ error: 'Not authorized' });
   }
 
@@ -153,7 +153,7 @@ app.post('/api/tables/:id/share', authenticate, async (req, res) => {
 // GENERAL INFO
 app.get('/api/tables/:id/general', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json(table.general || {});
@@ -161,7 +161,7 @@ app.get('/api/tables/:id/general', authenticate, async (req, res) => {
 
 app.put('/api/tables/:id/general', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -179,7 +179,7 @@ app.put('/api/tables/:id/general', authenticate, async (req, res) => {
 // ✅ GET gear checklist(s)
 app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -191,7 +191,7 @@ app.get('/api/tables/:id/gear', authenticate, async (req, res) => {
 app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
   try {
     const table = await Table.findById(req.params.id);
-    if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+    if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
       return res.status(403).json({ error: 'Not authorized or not found' });
     }
 
@@ -221,7 +221,7 @@ app.put('/api/tables/:id/gear', authenticate, async (req, res) => {
 // TRAVEL / ACCOMMODATION
 app.get('/api/tables/:id/travel', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json({
@@ -232,7 +232,7 @@ app.get('/api/tables/:id/travel', authenticate, async (req, res) => {
 
 app.put('/api/tables/:id/travel', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.travel = req.body.travel || [];
@@ -244,7 +244,7 @@ app.put('/api/tables/:id/travel', authenticate, async (req, res) => {
 // DELETE
 app.delete('/api/tables/:id', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || !table.owner.equals(req.user.id)) {
+  if (!table || !table.owners.includes(req.user.id)) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   await table.deleteOne();
@@ -253,7 +253,7 @@ app.delete('/api/tables/:id', authenticate, async (req, res) => {
 
 app.delete('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -281,7 +281,7 @@ app.get('/api/users', authenticate, async (req, res) => {
 // PROGRAM SCHEDULE
 app.get('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   res.json({ programSchedule: table.programSchedule || [] });
@@ -289,7 +289,7 @@ app.get('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
 
 app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
   table.programSchedule = req.body.programSchedule || [];
@@ -299,7 +299,7 @@ app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
 
 app.put('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
   const table = await Table.findById(req.params.id);
-  if (!table || (!table.owner.equals(req.user.id) && !table.sharedWith.includes(req.user.id))) {
+  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
     return res.status(403).json({ error: 'Not authorized or not found' });
   }
 
@@ -324,6 +324,34 @@ app.get('*', (req, res) => {
   }
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+
+// MAKE OWNER
+router.post('/api/tables/:id/share', authMiddleware, async (req, res) => {
+  const { email, makeOwner } = req.body;
+  const tableId = req.params.id;
+
+  const userToShare = await User.findOne({ email: email.toLowerCase().trim() });
+  if (!userToShare) return res.status(404).json({ error: 'User not found' });
+
+  const table = await Table.findById(tableId);
+  if (!table) return res.status(404).json({ error: 'Table not found' });
+
+  if (!table.owner.equals(req.user._id)) {
+    return res.status(403).json({ error: 'Only the owner can share this table' });
+  }
+
+  if (makeOwner) {
+    table.owner = userToShare._id;  // 👈 this replaces the current owner
+  } else {
+    if (!table.sharedWith.includes(userToShare._id)) {
+      table.sharedWith.push(userToShare._id);
+    }
+  }
+
+  await table.save();
+  res.json({ message: makeOwner ? 'Ownership transferred' : 'User added to table' });
+});
+
 
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));

@@ -27,7 +27,7 @@ const programSchema = new mongoose.Schema({
 
 const tableSchema = new mongoose.Schema({
   title: String,
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  owners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   rows: [
     {
