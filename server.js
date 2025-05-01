@@ -280,22 +280,6 @@ app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
   res.json({ message: 'Program schedule updated' });
 });
 
-app.put('/api/tables/:id/rows/:index', authenticate, async (req, res) => {
-  const table = await Table.findById(req.params.id);
-  if (!table || (!table.owners.includes(req.user.id) && !table.sharedWith.includes(req.user.id))) {
-    return res.status(403).json({ error: 'Not authorized or not found' });
-  }
-
-  const idx = parseInt(req.params.index);
-  if (isNaN(idx) || idx < 0 || idx >= table.rows.length) {
-    return res.status(400).json({ error: 'Invalid row index' });
-  }
-
-  table.rows[idx] = req.body; // replace the row at index
-  await table.save();
-  res.json({ message: 'Row updated' });
-});
-
 // Serve frontend static files
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'frontend')));
