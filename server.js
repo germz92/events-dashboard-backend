@@ -364,5 +364,18 @@ app.delete('/api/tables/:id/rows-by-id/:rowId', authenticate, async (req, res) =
   res.json({ message: 'Row deleted' });
 });
 
+app.put('/api/tables/:id/reorder-rows', authenticate, async (req, res) => {
+  const table = await Table.findById(req.params.id);
+  if (!table || !table.owners.includes(req.user.id)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+
+  // Replace with reordered list
+  table.rows = req.body.rows;
+  await table.save();
+  res.json({ message: 'Row order saved' });
+});
+
+
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
