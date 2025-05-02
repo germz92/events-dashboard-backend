@@ -378,6 +378,11 @@ app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
   res.json({ success: true });
 });
 
+// VERIFY TOKEN
+app.get('/api/verify-token', authenticate, (req, res) => {
+  res.json({ valid: true, user: req.user });
+});
+
 
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
