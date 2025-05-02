@@ -1,14 +1,4 @@
 body {
-  opacity: 0;
-  animation: fadeIn 0.3s ease-in forwards;
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-
-body {
   font-family: Arial, sans-serif;
   background: #f4f4f4;
   margin: 0;
@@ -16,6 +6,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 500px;
+}
+
+html {
+  margin-bottom: 500px;
 }
 
 .back-btn {
@@ -186,6 +181,10 @@ font-size: 16px;
 h2 {
 font-size: 16px;
 }
+
+h1 {
+  font-size: 20px;
+  }
 
 .back-btn {
 padding: 8px 12px;

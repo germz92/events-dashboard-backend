@@ -9,12 +9,11 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
-    opacity: 0;
-    animation: fadeIn 0.3s ease-in forwards;
   }
 
-  @keyframes fadeIn {
-    to { opacity: 1; }
+  .logout-btn {
+    background: gray;
+    opacity: 0.5;
   }
   
   html, body {
@@ -51,9 +50,10 @@ body {
   }
   
   .top-bar button {
-    background: #dc3545;
+    background: gray;
     color: white;
-    padding: 10px 16px;
+    opacity: 0.5;
+    padding: 6px 12px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -69,6 +69,7 @@ body {
     align-items: center;
     margin-bottom: 10px;
     flex-wrap: wrap;
+    gap: 10px;
   }
   
   .btn-create {
@@ -143,6 +144,18 @@ body {
   .btn-share:hover { background-color: #138496; }
   .btn-delete:hover { background-color: #c82333; }
   
+  #newTitle,
+  #newClient {
+    height: 48px;
+    font-size: 17px;
+    padding: 14px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+
   .modal {
     display: none;
     position: fixed;
@@ -152,9 +165,10 @@ body {
     align-items: center;
     z-index: 1000;
   }
-
+  
   #shareEmail {
-    height: 40px;
+    height: 48px;
+    font-size: 16px;
   }
   
   .modal-content {
@@ -180,11 +194,13 @@ body {
   .modal-content input[type="text"],
   .modal-content input[type="email"],
   .modal-content input[type="date"] {
-    padding: 14px 12px; /* Taller input height */
+    padding: 16px 14px;
+    height: 48px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    font-size: 16px;
+    font-size: 17px;
     width: 100%;
+    box-sizing: border-box;
   }
   
   .modal-content button {
@@ -211,11 +227,6 @@ body {
   }
   .modal-content button:last-of-type:hover {
     background-color: #5a6268;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
   }
   
   @media (max-width: 768px) {
@@ -248,8 +259,11 @@ body {
     .modal-content {
       width: 95%;
     }
-    select, input[type="text"] {
-      font-size: 16px;
+    .modal-content input[type="text"],
+    .modal-content input[type="email"],
+    .modal-content input[type="date"] {
+      height: 52px;
+      font-size: 18px;
     }
   }
   

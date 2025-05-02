@@ -7,18 +7,16 @@
   <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
   <link rel="stylesheet" href="css/crew.css">
   <script src="js/config.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <header>
     <div class="header-inner">
-      <button class="back-btn" onclick="goBack()" style="background: #ccc;">⬅ Back</button>
-  
       <div class="crew-title">
         <h1 id="tableTitle">Zenith Live 2025</h1>
         <h2>Crew Call</h2>
       </div>
-  
-      <!-- ✅ Corrected class name -->
+
       <div class="top-nav-bar">
         <div id="addDateBar">
           <input id="newDate" type="date">
@@ -26,15 +24,13 @@
         </div>
         <div id="crewCount"><strong>Crew Count: 0</strong></div>
       </div>
-      
-  
-      <!-- ✅ Corrected class name -->
+
       <div class="filter-sort-bar">
         <label for="filterDate"></label>
         <select id="filterDate" onchange="renderTableSection()">
           <option value="">Show All</option>
         </select>
-  
+
         <label for="sortDirection"></label>
         <select id="sortDirection" onchange="renderTableSection()">
           <option value="asc">Oldest First</option>
@@ -46,8 +42,7 @@
       </div>
     </div>
   </header>
-  
-  
+
   <div id="dateSections"></div>
 
   <template id="tableTemplate">
@@ -82,5 +77,55 @@
   </template>
 
   <script src="js/crew.js"></script>
+
+  <!-- 🔻 Bottom Navigation Placeholder -->
+  <div id="bottomNavPlaceholder"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const tableId = params.get('id');
+      localStorage.setItem('eventId', tableId);
+
+      // Load event title
+      try {
+        const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
+          headers: { Authorization: localStorage.getItem('token') }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('tableTitle').textContent = data.title || 'Crew Call';
+        }
+      } catch (err) {
+        console.error('Error loading event title:', err);
+      }
+
+      // Inject bottom nav
+      const navContainer = document.getElementById('bottomNavPlaceholder');
+      try {
+        const navRes = await fetch('bottom-nav.html');
+        const navHTML = await navRes.text();
+        navContainer.innerHTML = navHTML;
+
+        const links = [
+          { id: 'navGeneral', file: 'general.html' },
+          { id: 'navCrew', file: 'crew.html' },
+          { id: 'navTravel', file: 'travel-accommodation.html' },
+          { id: 'navGear', file: 'gear.html' },
+          { id: 'navCard', file: 'card-log.html' },
+          { id: 'navSchedule', file: 'schedule.html' }
+        ];
+
+        links.forEach(({ id, file }) => {
+          const el = document.getElementById(id);
+          if (el) el.href = `${file}?id=${tableId}`;
+        });
+
+        if (window.lucide) lucide.createIcons();
+      } catch (e) {
+        console.error("Failed to load bottom nav:", e);
+      }
+    });
+  </script>
 </body>
 </html>

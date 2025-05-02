@@ -7,10 +7,9 @@
   <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
   <link rel="stylesheet" href="css/general.css" />
   <script src="js/config.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <button onclick="goBack()" class="back-btn">⬅ Back</button>
-
   <div class="container">
     <h2 id="eventTitle" style="text-align: center; margin-bottom: 20px;"></h2>
     <h1>General Event Info</h1>
@@ -55,9 +54,7 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody id="contactRows">
-              <!-- Rows will be injected by JS -->
-            </tbody>
+            <tbody id="contactRows"></tbody>
           </table>
         </div>
         <button type="button" class="add-row-btn" onclick="addContactRow()">Add Row</button>
@@ -75,9 +72,7 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody id="locationsRows">
-              <!-- Rows will be injected by JS -->
-            </tbody>
+            <tbody id="locationsRows"></tbody>
           </table>
         </div>
         <button type="button" class="add-row-btn" onclick="addLocationRow()">Add Row</button>
@@ -90,13 +85,59 @@
     </form>
   </div>
 
+  <!-- 🔻 Dynamic Bottom Navigation Placeholder -->
+  <div id="bottomNavPlaceholder"></div>
+
+  <script src="js/general.js"></script>
   <script>
-    function goBack() {
+    document.addEventListener("DOMContentLoaded", async () => {
       const params = new URLSearchParams(window.location.search);
       const tableId = params.get('id');
-      window.location.href = `event.html?id=${tableId}`;
-    }
+
+      if (!tableId) {
+        alert("Missing event ID in URL.");
+        return;
+      }
+
+      // Load event title
+      try {
+        const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
+          headers: { Authorization: localStorage.getItem('token') }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('eventTitle').textContent = data.title || 'General Event Info';
+        }
+      } catch (err) {
+        console.error('Failed to fetch event title:', err);
+      }
+
+      // Load bottom nav dynamically
+      const navContainer = document.getElementById('bottomNavPlaceholder');
+      try {
+        const navRes = await fetch('bottom-nav.html');
+        const navHTML = await navRes.text();
+        navContainer.innerHTML = navHTML;
+
+        const links = [
+          { id: 'navGeneral', file: 'general.html' },
+          { id: 'navCrew', file: 'crew.html' },
+          { id: 'navTravel', file: 'travel-accommodation.html' },
+          { id: 'navGear', file: 'gear.html' },
+          { id: 'navCard', file: 'card-log.html' },
+          { id: 'navSchedule', file: 'schedule.html' }
+        ];
+
+        links.forEach(({ id, file }) => {
+          const el = document.getElementById(id);
+          if (el) el.href = `${file}?id=${tableId}`;
+        });
+
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        console.error('Failed to load bottom navigation:', err);
+      }
+    });
   </script>
-  <script src="js/general.js"></script>
 </body>
 </html>

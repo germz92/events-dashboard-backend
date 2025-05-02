@@ -1,7 +1,7 @@
   const token = localStorage.getItem('token');
   if (!token) {
     alert('Not logged in');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   }
 
   const fullName = localStorage.getItem('fullName') || 'User';

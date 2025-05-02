@@ -21,17 +21,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const el = document.getElementById(id);
         const div = document.createElement('div');
         div.id = id;
-        div.textContent = general[id] || '';
         div.dataset.value = general[id] || '';
         div.className = 'read-only';
+        div.textContent = general[id] || '';
         el.replaceWith(div);
       });
 
       document.getElementById('start').value = general.start || '';
       document.getElementById('end').value = general.end || '';
 
-      (general.contacts || []).forEach(data => renderContactRow(data, !isOwner));
-      (general.locations || []).forEach(data => renderLocationRow(data, !isOwner));
+      const contactRows = document.getElementById('contactRows');
+      contactRows.innerHTML = '';
+      (general.contacts || []).forEach(data => renderContactRow(data, true));
+
+      const locationRows = document.getElementById('locationsRows');
+      locationRows.innerHTML = '';
+      (general.locations || []).forEach(data => renderLocationRow(data, true));
 
       document.getElementById('editBtn').style.display = isOwner ? 'inline-block' : 'none';
       document.querySelectorAll('.add-row-btn').forEach(btn => {
@@ -74,7 +79,7 @@ function createLinkHTML(value, type) {
   else if (type === 'phone') href = `tel:${value}`;
   else if (type === 'address') href = `https://www.google.com/maps/search/?q=${encodeURIComponent(value)}`;
   else return `<div>${value}</div>`;
-  return `<div><a href="${href}" target="_blank">${value}</a></div>`;
+  return `<a href="${href}" target="_blank" style="color: #007BFF; text-decoration: underline;">${value}</a>`;
 }
 
 function createTd(child) {
@@ -103,8 +108,11 @@ function renderContactRow(data = {}, readOnly = false) {
 
   fields.forEach(({ value, type }) => {
     const td = document.createElement('td');
-    td.innerHTML = readOnly ? createLinkHTML(value, type) : '';
-    if (!readOnly) td.appendChild(createLinkedTextarea(value, type));
+    if (readOnly) {
+      td.innerHTML = createLinkHTML(value, type);
+    } else {
+      td.appendChild(createLinkedTextarea(value, type));
+    }
     row.appendChild(td);
   });
 
@@ -125,8 +133,11 @@ function renderLocationRow(data = {}, readOnly = false) {
 
   fields.forEach(({ value, type }) => {
     const td = document.createElement('td');
-    td.innerHTML = readOnly ? createLinkHTML(value, type) : '';
-    if (!readOnly) td.appendChild(createLinkedTextarea(value, type));
+    if (readOnly) {
+      td.innerHTML = createLinkHTML(value, type);
+    } else {
+      td.appendChild(createLinkedTextarea(value, type));
+    }
     row.appendChild(td);
   });
 

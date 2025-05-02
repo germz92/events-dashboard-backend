@@ -32,6 +32,13 @@ function getUserIdFromToken() {
   return payload.id;
 }
 
+function getCurrentUserName() {
+  const token = localStorage.getItem('token');
+  if (!token) return '';
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.fullName || '';
+}
+
 function addDaySection(date, entries = []) {
   const container = document.getElementById('table-container');
   const dayDiv = document.createElement('div');
@@ -72,36 +79,41 @@ function addDaySection(date, entries = []) {
 function addRow(date, entry = {}) {
   const tbody = document.getElementById(`tbody-${date}`);
   const row = document.createElement('tr');
+
+  const currentUser = getCurrentUserName();
+  const isCreator = !entry.user || entry.user === currentUser;
+  const readOnlyForNonOwner = !isOwner && !isCreator;
+
+  const userValue = entry.user || currentUser;
+  const userOptions = users.map(user =>
+    `<option value="${user}" ${user === userValue ? 'selected' : ''}>${user}</option>`
+  ).join('');
+
+  row.setAttribute('data-user', userValue);
+
   row.innerHTML = `
-    <td><select class="camera-select">
-      ${cameras.map(cam => `<option value="${cam}">${cam}</option>`).join('')}
+    <td><select class="camera-select" ${readOnlyForNonOwner ? 'disabled' : ''}>
+      <option value="" disabled ${entry.camera ? '' : 'selected hidden'}>Select Camera</option>
+      ${cameras.map(cam => `<option value="${cam}" ${entry.camera === cam ? 'selected' : ''}>${cam}</option>`).join('')}
       <option value="add-new-camera">➕ Add New Camera</option>
     </select></td>
-    <td><input type="text" value="${entry.card1 || ''}" placeholder="Card 1" /></td>
-    <td><input type="text" value="${entry.card2 || ''}" placeholder="Card 2" /></td>
-    <td><select class="user-select">
-      ${users.map(user => `<option value="${user}">${user}</option>`).join('')}
-      <option value="add-new-user">➕ Add New User</option>
-    </select></td>
+    <td><input type="text" value="${entry.card1 || ''}" placeholder="Card 1" ${readOnlyForNonOwner ? 'readonly' : ''} /></td>
+    <td><input type="text" value="${entry.card2 || ''}" placeholder="Card 2" ${readOnlyForNonOwner ? 'readonly' : ''} /></td>
+    <td>
+      <select class="user-select" ${!isOwner ? 'disabled' : ''}>
+        ${userOptions}
+        <option value="add-new-user">➕ Add New User</option>
+      </select>
+    </td>
     <td style="text-align:center;">
-      ${isOwner ? '<button class="delete-row-btn" title="Delete Row" style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: #d11a2a;">🗑️</button>' : ''}
+    ${isOwner ? '<button class="delete-row-btn" title="Delete Row" style="background: transparent; border: none; font-size: 18px; cursor: pointer; color: #d11a2a;">🗑️</button>' : ''}
     </td>
   `;
+
   tbody.appendChild(row);
 
   const cameraSelect = row.querySelector('.camera-select');
   const userSelect = row.querySelector('.user-select');
-  if (entry.camera && !cameras.includes(entry.camera)) {
-    const newOption = new Option(entry.camera, entry.camera, false, false);
-    cameraSelect.insertBefore(newOption, cameraSelect.querySelector('[value="add-new-camera"]'));
-  }
-  cameraSelect.value = entry.camera || '';
-
-  if (entry.user && !users.includes(entry.user)) {
-    const newOption = new Option(entry.user, entry.user, false, false);
-    userSelect.insertBefore(newOption, userSelect.querySelector('[value="add-new-user"]'));
-  }
-  userSelect.value = entry.user || '';
 
   cameraSelect.addEventListener('change', function () {
     if (this.value === 'add-new-camera') {
@@ -159,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function debounceSave() {
     clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(saveToMongoDB, 250); // More responsive
+    saveTimeout = setTimeout(saveToMongoDB, 250);
   }
 
   function openDateModal() {
@@ -203,7 +215,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 🔁 Save on all input/select changes
   document.getElementById('table-container').addEventListener('input', debounceSave);
   document.getElementById('table-container').addEventListener('change', debounceSave);
 

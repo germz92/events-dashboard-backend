@@ -7,10 +7,44 @@
   <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
   <link rel="stylesheet" href="css/travel-accommodation.css">
   <script src="js/config.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    textarea, input[type="text"], input[type="time"] {
+      width: 100%;
+      min-height: 34px;
+      resize: none;
+      overflow: hidden;
+      line-height: 1.4;
+      font-size: 14px;
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    td.text {
+      max-width: 200px;
+    }
+    .edit-btn, .save-btn {
+      margin: 20px;
+      padding: 10px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+    }
+    .edit-btn { background-color: #007BFF; color: white; }
+    .save-btn { background-color: #28a745; color: white; display: none; }
+    .readonly-span { display: inline-block; padding: 6px; white-space: pre-wrap; word-break: break-word; }
+  </style>
 </head>
 <body>
-  <button onclick="goBack()" style="margin: 20px; background: #ccc; padding: 10px 16px; border-radius: 6px; border: none;">⬅ Back</button>
   <h1 id="eventTitle" style="text-align: center;"></h1>
+
+  <div style="text-align:center">
+    <button class="edit-btn" id="editModeBtn" onclick="enterEditMode()">Edit</button>
+    <button class="save-btn" id="saveBtn" onclick="saveData()">Save</button>
+  </div>
 
   <div class="section">
     <h2>Travel</h2>
@@ -20,8 +54,8 @@
           <tr>
             <th class="date">Date</th>
             <th class="time">Time</th>
-            <th class="text">Airline</th>
             <th class="text">Name</th>
+            <th class="text">Airline</th>
             <th class="text">Ref Number</th>
             <th class="action"></th>
           </tr>
@@ -38,8 +72,8 @@
       <table id="accommodationTable">
         <thead>
           <tr>
-            <th class="date">Date</th>
-            <th class="time">Time</th>
+            <th class="date">Check-In</th>
+            <th class="date">Check-Out</th>
             <th class="text">Hotel</th>
             <th class="text">Name</th>
             <th class="text">Ref Number</th>
@@ -52,17 +86,147 @@
     <button class="add-btn" onclick="addRow('accommodationTable')">+ Row</button>
   </div>
 
+  <div id="bottomNavPlaceholder"></div>
+
   <script>
     const token = localStorage.getItem('token');
     const params = new URLSearchParams(window.location.search);
     const tableId = params.get('id');
-    let saveTimeout;
     let isOwner = false;
+    let editMode = false;
 
     function getUserIdFromToken() {
       if (!token) return null;
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.id;
+    }
+
+    function formatDateReadable(isoDate) {
+      if (!isoDate) return '';
+      const options = { year: 'numeric', month: 'short', day: '2-digit' };
+      return new Date(isoDate).toLocaleDateString('en-US', options);
+    }
+
+    function formatTo12Hour(time) {
+      if (!time) return '';
+      const [hourStr, minuteStr] = time.split(':');
+      let hour = parseInt(hourStr, 10);
+      const minute = parseInt(minuteStr || '0', 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12 || 12;
+      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+
+    function populateTable(tableId, rows) {
+      const table = document.getElementById(tableId).querySelector("tbody");
+      table.innerHTML = '';
+
+      rows.forEach(item => {
+        const row = document.createElement("tr");
+
+        if (!editMode) {
+          if (tableId === 'travelTable') {
+            row.innerHTML = `
+              <td class="date"><span class="readonly-span">${formatDateReadable(item.date)}</span></td>
+              <td class="time"><span class="readonly-span">${formatTo12Hour(item.time)}</span></td>
+              <td class="text"><span class="readonly-span">${item.name || ''}</span></td>
+              <td class="text"><span class="readonly-span">${item.airline || ''}</span></td>
+              <td class="text"><span class="readonly-span">${item.ref || ''}</span></td>
+              <td class="action"></td>
+            `;
+          } else {
+            row.innerHTML = `
+              <td class="date"><span class="readonly-span">${formatDateReadable(item.checkin)}</span></td>
+              <td class="date"><span class="readonly-span">${formatDateReadable(item.checkout)}</span></td>
+              <td class="text"><span class="readonly-span">${item.hotel || ''}</span></td>
+              <td class="text"><span class="readonly-span">${item.name || ''}</span></td>
+              <td class="text"><span class="readonly-span">${item.ref || ''}</span></td>
+              <td class="action"></td>
+            `;
+          }
+        } else {
+          if (tableId === 'travelTable') {
+            row.innerHTML = `
+              <td class="date"><input type="date" value="${item.date || ''}"></td>
+              <td class="time"><input type="time" value="${item.time || ''}"></td>
+              <td class="text"><textarea>${item.name || ''}</textarea></td>
+              <td class="text"><textarea>${item.airline || ''}</textarea></td>
+              <td class="text"><textarea>${item.ref || ''}</textarea></td>
+              <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
+            `;
+          } else {
+            row.innerHTML = `
+              <td class="date"><input type="date" value="${item.checkin || ''}"></td>
+              <td class="date"><input type="date" value="${item.checkout || ''}"></td>
+              <td class="text"><textarea>${item.hotel || ''}</textarea></td>
+              <td class="text"><textarea>${item.name || ''}</textarea></td>
+              <td class="text"><textarea>${item.ref || ''}</textarea></td>
+              <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
+            `;
+          }
+        }
+
+        table.appendChild(row);
+      });
+
+      table.querySelectorAll('textarea').forEach(autoResizeTextarea);
+    }
+
+    function collectTableData(tableId) {
+      const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
+      return Array.from(rows).map(row => {
+        const inputs = row.querySelectorAll('input, textarea');
+        return tableId === 'travelTable' ? {
+          date: inputs[0]?.value || '',
+          time: inputs[1]?.value || '',
+          name: inputs[2]?.value || '',
+          airline: inputs[3]?.value || '',
+          ref: inputs[4]?.value || ''
+        } : {
+          checkin: inputs[0]?.value || '',
+          checkout: inputs[1]?.value || '',
+          hotel: inputs[2]?.value || '',
+          name: inputs[3]?.value || '',
+          ref: inputs[4]?.value || ''
+        };
+      });
+    }
+
+    function addRow(tableId) {
+      if (!editMode) return;
+      const table = document.getElementById(tableId).querySelector("tbody");
+      const row = document.createElement("tr");
+
+      row.innerHTML = tableId === 'travelTable'
+        ? `
+          <td class="date"><input type="date"></td>
+          <td class="time"><input type="time"></td>
+          <td class="text"><textarea></textarea></td>
+          <td class="text"><textarea></textarea></td>
+          <td class="text"><textarea></textarea></td>
+          <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
+        `
+        : `
+          <td class="date"><input type="date"></td>
+          <td class="date"><input type="date"></td>
+          <td class="text"><textarea></textarea></td>
+          <td class="text"><textarea></textarea></td>
+          <td class="text"><textarea></textarea></td>
+          <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
+        `;
+
+      table.appendChild(row);
+      row.querySelectorAll('textarea').forEach(autoResizeTextarea);
+    }
+
+    function removeRow(button) {
+      const row = button.closest('tr');
+      row.remove();
     }
 
     async function loadData() {
@@ -72,53 +236,6 @@
       const data = await res.json();
       populateTable('travelTable', data.travel);
       populateTable('accommodationTable', data.accommodation);
-    }
-
-    function populateTable(tableId, rows) {
-      const table = document.getElementById(tableId).querySelector("tbody");
-      table.innerHTML = '';
-      rows.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="date"><input type="date" value="${item.date || ''}"></td>
-          <td class="time"><input type="time" value="${item.time || ''}"></td>
-          <td class="text"><input type="text" value="${item.airline || item.hotel || ''}"></td>
-          <td class="text"><input type="text" value="${item.name || ''}"></td>
-          <td class="text"><input type="text" value="${item.ref || ''}"></td>
-          <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
-        `;
-        table.appendChild(row);
-      });
-    }
-
-    function addRow(tableId) {
-      const table = document.getElementById(tableId).querySelector("tbody");
-      const isTravel = tableId === 'travelTable';
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td class="date"><input type="date"></td>
-        <td class="time"><input type="time"></td>
-        <td class="text"><input type="text" placeholder="${isTravel ? 'Airline' : 'Hotel'}"></td>
-        <td class="text"><input type="text" placeholder="Name"></td>
-        <td class="text"><input type="text" placeholder="Ref #"></td>
-        <td class="action"><button class="delete-btn" onclick="removeRow(this)">🗑️</button></td>
-      `;
-      table.appendChild(row);
-      debounceSave();
-    }
-
-    function collectTableData(tableId) {
-      const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
-      return Array.from(rows).map(row => {
-        const inputs = row.querySelectorAll('input');
-        return {
-          date: inputs[0].value,
-          time: inputs[1].value,
-          [tableId === 'travelTable' ? 'airline' : 'hotel']: inputs[2].value,
-          name: inputs[3].value,
-          ref: inputs[4].value
-        };
-      });
     }
 
     async function saveData() {
@@ -132,58 +249,56 @@
         },
         body: JSON.stringify({ travel: travelRows, accommodation: accommodationRows })
       });
+      editMode = false;
+      document.getElementById('editModeBtn').style.display = 'inline-block';
+      document.getElementById('saveBtn').style.display = 'none';
+      loadData();
     }
 
-    function debounceSave() {
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(saveData, 500); // 0.5s after last change
-    }
-
-    function removeRow(button) {
-      const row = button.closest('tr');
-      row.parentElement.removeChild(row);
-      debounceSave();
-    }
-
-    function goBack() {
-      window.location.href = `event.html?id=${tableId}`;
+    function enterEditMode() {
+      if (!isOwner) return;
+      editMode = true;
+      document.getElementById('editModeBtn').style.display = 'none';
+      document.getElementById('saveBtn').style.display = 'inline-block';
+      loadData();
     }
 
     window.addEventListener("DOMContentLoaded", async () => {
-  const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
-    headers: { Authorization: token }
-  });
-
-  if (res.ok) {
-    const table = await res.json();
-    document.getElementById('eventTitle').textContent = table.title;
-
-    const userId = getUserIdFromToken();
-    isOwner = Array.isArray(table.owners) && table.owners.includes(userId);
-
-    await loadData();
-
-    if (!isOwner) {
-      // 🔒 Disable all inputs and hide delete buttons
-      document.querySelectorAll('input').forEach(input => {
-        input.disabled = true;
-        input.style.background = '#f9f9f9';
-        input.style.cursor = 'not-allowed';
+      const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
+        headers: { Authorization: token }
       });
 
-      document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
+      if (res.ok) {
+        const table = await res.json();
+        document.getElementById('eventTitle').textContent = table.title;
+        const userId = getUserIdFromToken();
+        isOwner = Array.isArray(table.owners) && table.owners.includes(userId);
+        if (!isOwner) document.getElementById('editModeBtn').style.display = 'none';
+        loadData();
+      }
 
-      // 🔒 Hide all + Row buttons
-      document.querySelectorAll('.add-btn').forEach(btn => btn.style.display = 'none');
-    } else {
-      // 🔓 Only bind save listeners if owner
-      document.getElementById('travelTable').addEventListener('input', debounceSave);
-      document.getElementById('accommodationTable').addEventListener('input', debounceSave);
-    }
-  }
-});
+      // Bottom Nav
+      const navContainer = document.getElementById('bottomNavPlaceholder');
+      const navRes = await fetch('bottom-nav.html');
+      const navHTML = await navRes.text();
+      navContainer.innerHTML = navHTML;
 
+      const links = [
+        { id: 'navGeneral', file: 'general.html' },
+        { id: 'navCrew', file: 'crew.html' },
+        { id: 'navTravel', file: 'travel-accommodation.html' },
+        { id: 'navGear', file: 'gear.html' },
+        { id: 'navCard', file: 'card-log.html' },
+        { id: 'navSchedule', file: 'schedule.html' }
+      ];
 
+      links.forEach(({ id, file }) => {
+        const el = document.getElementById(id);
+        if (el) el.href = `${file}?id=${tableId}`;
+      });
+
+      if (window.lucide) lucide.createIcons();
+    });
   </script>
 </body>
 </html>

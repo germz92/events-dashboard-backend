@@ -6,30 +6,74 @@
   <title>Program Schedule</title>
   <link rel="stylesheet" href="css/schedule.css">
   <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.png">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
   <!-- Fixed top section -->
   <div class="top-controls-fixed">
-    <button onclick="goBack()" class="back-btn">⬅ Back</button>
-
     <h2 id="eventTitle">Program Schedule</h2>
 
-    <!-- Date input + Add Date button -->
     <div class="top-controls">
       <input id="newDate" type="date" placeholder="Select Date">
       <button class="add-btn" onclick="addDateSection()">+ Add Date</button>
     </div>
 
-    <!-- Injected search bar and date filter will go here -->
     <div id="searchFilterContainer" class="top-controls"></div>
   </div>
 
-  <!-- Scrollable content -->
   <div id="programSections" class="program-container"></div>
 
-  <!-- Scripts -->
+  <!-- 🔻 Bottom Navigation Placeholder -->
+  <div id="bottomNavPlaceholder"></div>
+
   <script src="js/config.js"></script>
   <script src="js/schedule.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const tableId = params.get('id');
+      localStorage.setItem('eventId', tableId);
+
+      // Load event title
+      try {
+        const res = await fetch(`${API_BASE}/api/tables/${tableId}`, {
+          headers: { Authorization: localStorage.getItem('token') }
+        });
+
+        const table = await res.json();
+        document.getElementById('eventTitle').textContent = table.title || 'Program Schedule';
+      } catch (err) {
+        console.error('Error loading event title:', err);
+        document.getElementById('eventTitle').textContent = 'Event Not Found';
+      }
+
+      // Inject bottom nav
+      try {
+        const navContainer = document.getElementById('bottomNavPlaceholder');
+        const navRes = await fetch('bottom-nav.html');
+        const navHTML = await navRes.text();
+        navContainer.innerHTML = navHTML;
+
+        const links = [
+          { id: 'navGeneral', file: 'general.html' },
+          { id: 'navCrew', file: 'crew.html' },
+          { id: 'navTravel', file: 'travel-accommodation.html' },
+          { id: 'navGear', file: 'gear.html' },
+          { id: 'navCard', file: 'card-log.html' },
+          { id: 'navSchedule', file: 'schedule.html' }
+        ];
+
+        links.forEach(({ id, file }) => {
+          const el = document.getElementById(id);
+          if (el) el.href = `${file}?id=${tableId}`;
+        });
+
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        console.error('Failed to load bottom nav:', err);
+      }
+    });
+  </script>
 </body>
 </html>

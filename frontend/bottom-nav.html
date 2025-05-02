@@ -1,0 +1,50 @@
+<style>
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px; /* increased height */
+      background: #fff;
+      border-top: 1px solid #ccc;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start; /* top align to allow inner padding */
+      padding-top: 6px;
+      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom, 10px); /* support iPhones with notches */
+    }
+  
+    .bottom-nav a {
+      color: #007BFF;
+      text-decoration: none;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      padding-bottom: 12px; /* more space from bottom */
+    }
+  
+    .bottom-nav a:hover {
+      background-color: #f0f0f0;
+    }
+  
+    .bottom-nav i {
+      stroke: #007BFF;
+      width: 20px;
+      height: 20px;
+      margin-bottom: 4px;
+    }
+  </style>
+  
+  <nav class="bottom-nav">
+    <a href="events.html"><i data-lucide="home"></i><span>Home</span></a>
+    <a id="navGeneral"><i data-lucide="info"></i><span>General</span></a>
+    <a id="navCrew"><i data-lucide="users"></i><span>Crew</span></a>
+    <a id="navTravel"><i data-lucide="plane"></i><span>Travel</span></a>
+    <a id="navGear"><i data-lucide="camera"></i><span>Gear</span></a>
+    <a id="navCard"><i data-lucide="memory-stick"></i><span>Cards</span></a>
+    <a id="navSchedule"><i data-lucide="calendar"></i><span>Schedule</span></a>
+  </nav>
+  

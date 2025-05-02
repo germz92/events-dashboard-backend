@@ -32,7 +32,7 @@ async function loadPrograms() {
     });
     const data = await res.json();
     tableData.programs = data.programSchedule || [];
-    isOwner = data.owner === getUserIdFromToken();
+    isOwner = Array.isArray(data.owners) && data.owners.map(String).includes(getUserIdFromToken());
     renderProgramSections();
 
     // 🔒 Hide date controls for non-owners

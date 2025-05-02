@@ -75,7 +75,7 @@ window.register = async function () {
     alert(data.message || 'User created');
 
     if (data.message === 'User created') {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     }
   } catch (err) {
     alert(`Error: ${err.message}`);
