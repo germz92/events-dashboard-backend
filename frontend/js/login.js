@@ -1,10 +1,14 @@
 // LOGIN
 window.login = async function () {
+  if (window.loginLock) return;
+  window.loginLock = true;
+
   const email = document.getElementById('email').value.trim().toLowerCase();
   const password = document.getElementById('password').value.trim();
 
   if (!email || !password) {
     alert('Please enter both email and password.');
+    window.loginLock = false;
     return;
   }
 
@@ -14,26 +18,49 @@ window.login = async function () {
     loginBtn.textContent = 'Logging in...';
   }
 
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  });
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
 
-  const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      alert('Server returned an invalid response.');
+      throw new Error('Invalid JSON from server');
+    }
 
-  if (data.token) {
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('fullName', data.fullName);
-    window.location.href = 'events.html';
-  } else {
-    alert(data.error || 'Login failed');
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('fullName', data.fullName);
+
+      // optional: extract and store user ID
+      const payload = JSON.parse(atob(data.token.split('.')[1]));
+      if (payload?.id) localStorage.setItem('userId', payload.id);
+
+      window.location.href = 'events.html';
+    } else {
+      alert(data.error || 'Login failed');
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+      }
+      window.loginLock = false;
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Login failed. Please try again later.');
     if (loginBtn) {
       loginBtn.disabled = false;
       loginBtn.textContent = 'Login';
     }
+    window.loginLock = false;
   }
-}
+};
+
 
 // ✅ Allow pressing Enter key to login
 document.addEventListener('DOMContentLoaded', () => {
