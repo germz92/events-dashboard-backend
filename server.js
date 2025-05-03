@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -279,16 +280,6 @@ app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
   await table.save();
   res.json({ message: 'Program schedule updated' });
 });
-
-// Serve frontend static files
-const path = require('path');
-app.use(express.static(path.join(__dirname, 'frontend')));
-
-app.get('/events.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'events.html'));
-});
-
-const path = require('path');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'frontend')));
