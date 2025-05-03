@@ -284,13 +284,36 @@ app.put('/api/tables/:id/program-schedule', authenticate, async (req, res) => {
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// SPA fallback for client-side routing
+app.get('/events.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'events.html'));
+});
+
+const path = require('path');
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Explicit routes for all HTML pages
+app.get('/bottom-nav.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'bottom-nav.html')));
+app.get('/card-log.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'card-log.html')));
+app.get('/crew.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'crew.html')));
+app.get('/event.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'event.html')));
+app.get('/events.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'events.html')));
+app.get('/gear.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'gear.html')));
+app.get('/general.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'general.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'index.html')));
+app.get('/register.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'register.html')));
+app.get('/schedule.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'schedule.html')));
+app.get('/travel-accommodation.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'travel-accommodation.html')));
+
+// Catch-all fallback for bad frontend routes (MUST come last)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API route not found' });
   }
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+
 
 // MAKE OWNER
 app.post('/api/tables/:id/share', authenticate, async (req, res) => {
