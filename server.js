@@ -297,6 +297,11 @@ app.get('/register.html', (req, res) => res.sendFile(path.join(__dirname, 'front
 app.get('/schedule.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'schedule.html')));
 app.get('/travel-accommodation.html', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'travel-accommodation.html')));
 
+// VERIFY TOKEN
+app.get('/api/verify-token', authenticate, (req, res) => {
+  res.json({ valid: true, user: req.user });
+});
+
 // Catch-all fallback for bad frontend routes (MUST come last)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
@@ -391,12 +396,6 @@ app.put('/api/tables/:id/rows/:rowId', authenticate, async (req, res) => {
 
   res.json({ success: true });
 });
-
-// VERIFY TOKEN
-app.get('/api/verify-token', authenticate, (req, res) => {
-  res.json({ valid: true, user: req.user });
-});
-
 
 // SERVER
 app.listen(3000, () => console.log('Server started on port 3000'));
